@@ -9,6 +9,7 @@ use bevy::{
     audio::{AudioPlugin, Volume},
     prelude::*,
 };
+use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 
 pub struct AppPlugin;
 
@@ -53,6 +54,7 @@ impl Plugin for AppPlugin {
         );
 
         // Add other plugins.
+        app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
         app.add_plugins((game::plugin, screen::plugin, ui::plugin));
 
         // Enable dev tools for dev builds.

@@ -4,6 +4,7 @@
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/latest/examples/movement/physics_in_fixed_timestep.rs).
 
 use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy_rapier3d::control::KinematicCharacterController;
 
 use crate::AppSet;
 
@@ -72,11 +73,22 @@ pub struct Movement {
 
 fn apply_movement(
     time: Res<Time>,
-    mut movement_query: Query<(&MovementController, &Movement, &mut Transform)>,
+    mut movement_query: Query<(&MovementController, &mut KinematicCharacterController)>,
+    camera_pivot: Query<&Transform, With<CameraPivot>>,
 ) {
-    for (controller, movement, mut transform) in &mut movement_query {
-        let velocity = controller.0;
-        transform.translation += velocity.extend(0.0) * time.delta_seconds();
+    for (controller, mut body) in &mut movement_query {
+        let pivot = camera_pivot.single();
+        // TODO: Find better way to do this
+        let mut velocity = Quat::from_rotation_y(pivot.rotation.to_euler(EulerRot::YZX).0)
+            .mul_vec3(Vec3::new(controller.0.x, 0.0, -controller.0.y));
+
+        if let Some(current_velocity) = body.translation {
+            velocity.y += current_velocity.y;
+        }
+
+        let speed = 3.0;
+        velocity *= speed;
+        body.translation = Some(velocity * time.delta_seconds());
     }
 }
 

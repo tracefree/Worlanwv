@@ -1,13 +1,12 @@
 //! Spawn the player.
 
 use bevy::prelude::*;
+use bevy_rapier3d::{
+    control::KinematicCharacterController, dynamics::RigidBody, geometry::Collider,
+};
 
 use crate::{
-    game::{
-        animation::PlayerAnimation,
-        assets::{HandleMap, ImageKey},
-        movement::{Movement, MovementController},
-    },
+    game::movement::{Movement, MovementController},
     screen::Screen,
 };
 
@@ -34,13 +33,16 @@ fn spawn_player(_trigger: Trigger<SpawnPlayer>, mut commands: Commands) {
             MovementController::default(),
             Movement { speed: 420.0 },
             StateScoped(Screen::Playing),
-            SpatialBundle::default(),
+            SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.8, 0.0)),
+            RigidBody::KinematicPositionBased,
+            KinematicCharacterController::default(),
+            Collider::capsule_y(0.5, 0.3),
         ))
         .with_children(|player| {
             player
                 .spawn(CameraPivot)
                 .insert(SpatialBundle {
-                    transform: Transform::from_xyz(0.0, 1.6, 0.0),
+                    transform: Transform::from_xyz(0.0, 0.8, 0.0),
                     ..default()
                 })
                 .with_children(|pivot| {

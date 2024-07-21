@@ -1,6 +1,9 @@
 //! Spawn the main level by triggering other observers.
 
-use bevy::{color::palettes::tailwind, pbr::PbrPlugin, prelude::*};
+use std::f32::consts::PI;
+
+use bevy::{color::palettes::tailwind, prelude::*};
+use bevy_rapier3d::geometry::Collider;
 
 use super::player::SpawnPlayer;
 
@@ -23,16 +26,33 @@ fn spawn_level(
     // The only thing we have in our level is a player,
     // but add things like walls etc. here.
     commands.trigger(SpawnPlayer);
+    commands
+        .spawn(MaterialMeshBundle {
+            material: materials.add(Color::from(tailwind::BLUE_50)),
+            mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
+            transform: Transform::from_xyz(0.0, 0.0, -3.0),
+            ..default()
+        })
+        .insert(Collider::cuboid(500.0, 2.0, 500.0));
     commands.spawn(MaterialMeshBundle {
-        material: materials.add(Color::from(tailwind::BLUE_50)),
-        mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
-        transform: Transform::from_xyz(0.0, 0.0, -3.0),
-        ..default()
-    });
-    commands.spawn(MaterialMeshBundle {
-        material: materials.add(Color::from(tailwind::BLUE_50)),
+        material: materials.add(Color::BLACK),
         mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
         transform: Transform::from_xyz(0.0, 2.0, -3.0),
+        ..default()
+    });
+
+    // Lights
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: light_consts::lux::OVERCAST_DAY,
+            shadows_enabled: true,
+            ..default()
+        },
+        transform: Transform {
+            translation: Vec3::new(0.0, 3.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.0),
+            ..default()
+        },
         ..default()
     });
 }
