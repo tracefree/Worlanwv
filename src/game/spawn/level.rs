@@ -47,12 +47,10 @@ fn spawn_level(
     });
 
     // Cycle 1
-    commands
-        .spawn(SceneBundle {
-            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cycle_1.glb")),
-            ..default()
-        })
-        .insert(Visibility::Hidden);
+    commands.spawn(SceneBundle {
+        scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cycle_1.glb")),
+        ..default()
+    });
 
     // Cycle 2
     commands.spawn(SceneBundle {
