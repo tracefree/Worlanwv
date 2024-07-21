@@ -1,8 +1,10 @@
 //! Spawn the player.
 
-use bevy::prelude::*;
+use bevy::{math::VectorSpace, prelude::*};
 use bevy_rapier3d::{
-    control::KinematicCharacterController, dynamics::RigidBody, geometry::Collider,
+    control::KinematicCharacterController,
+    dynamics::{RigidBody, Velocity},
+    geometry::Collider,
 };
 
 use crate::{
@@ -33,8 +35,12 @@ fn spawn_player(_trigger: Trigger<SpawnPlayer>, mut commands: Commands) {
             MovementController::default(),
             Movement { speed: 420.0 },
             StateScoped(Screen::Playing),
-            SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.8, 0.0)),
+            SpatialBundle::from_transform(Transform::from_xyz(0.0, 2.8, 0.0)),
             RigidBody::KinematicPositionBased,
+            Velocity {
+                linvel: Vec3::ZERO,
+                angvel: Vec3::ZERO,
+            },
             KinematicCharacterController::default(),
             Collider::capsule_y(0.5, 0.3),
         ))
@@ -52,6 +58,7 @@ fn spawn_player(_trigger: Trigger<SpawnPlayer>, mut commands: Commands) {
                             hdr: true,
                             ..default()
                         },
+                        transform: Transform::from_xyz(0.0, 0.0, 3.0),
                         projection: PerspectiveProjection {
                             fov: 70.0_f32.to_radians(),
                             ..default()

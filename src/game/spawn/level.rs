@@ -29,17 +29,19 @@ fn spawn_level(
     commands
         .spawn(MaterialMeshBundle {
             material: materials.add(Color::from(tailwind::BLUE_50)),
-            mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
+            mesh: meshes.add(Cuboid::new(100.0, 100.0, 100.0)),
+            transform: Transform::from_xyz(0.0, -50.0, 0.0),
+            ..default()
+        })
+        .insert(Collider::cuboid(50.0, 50.0, 50.0));
+    commands
+        .spawn(MaterialMeshBundle {
+            material: materials.add(Color::BLACK),
+            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
             transform: Transform::from_xyz(0.0, 0.0, -3.0),
             ..default()
         })
-        .insert(Collider::cuboid(500.0, 2.0, 500.0));
-    commands.spawn(MaterialMeshBundle {
-        material: materials.add(Color::BLACK),
-        mesh: meshes.add(Cuboid::new(0.5, 0.5, 0.5)),
-        transform: Transform::from_xyz(0.0, 2.0, -3.0),
-        ..default()
-    });
+        .insert(Collider::cuboid(0.5, 0.5, 0.5));
 
     // Lights
     commands.spawn(DirectionalLightBundle {

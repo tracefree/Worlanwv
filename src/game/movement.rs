@@ -4,7 +4,7 @@
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/latest/examples/movement/physics_in_fixed_timestep.rs).
 
 use bevy::{input::mouse::MouseMotion, prelude::*};
-use bevy_rapier3d::control::KinematicCharacterController;
+use bevy_rapier3d::{control::KinematicCharacterController, dynamics::Velocity};
 
 use crate::AppSet;
 
@@ -30,7 +30,10 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
-pub struct MovementController(pub Vec2);
+pub struct MovementController {
+    pub direction: Vec2,
+    pub jump: bool,
+}
 
 fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
@@ -57,7 +60,12 @@ fn record_movement_controller(
 
     // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
-        controller.0 = intent;
+        controller.direction = intent;
+        if input.just_pressed(KeyCode::Space) {
+            controller.jump = true;
+        } else {
+            controller.jump = false;
+        }
     }
 }
 
@@ -73,22 +81,36 @@ pub struct Movement {
 
 fn apply_movement(
     time: Res<Time>,
-    mut movement_query: Query<(&MovementController, &mut KinematicCharacterController)>,
+    mut movement_query: Query<(
+        &MovementController,
+        &mut Velocity,
+        &mut KinematicCharacterController,
+    )>,
     camera_pivot: Query<&Transform, With<CameraPivot>>,
 ) {
-    for (controller, mut body) in &mut movement_query {
+    for (controller, mut velocity, mut body) in &mut movement_query {
         let pivot = camera_pivot.single();
         // TODO: Find better way to do this
-        let mut velocity = Quat::from_rotation_y(pivot.rotation.to_euler(EulerRot::YZX).0)
-            .mul_vec3(Vec3::new(controller.0.x, 0.0, -controller.0.y));
-
-        if let Some(current_velocity) = body.translation {
-            velocity.y += current_velocity.y;
-        }
-
         let speed = 3.0;
-        velocity *= speed;
-        body.translation = Some(velocity * time.delta_seconds());
+        let planar_velocity =
+            Quat::from_rotation_y(pivot.rotation.to_euler(EulerRot::YZX).0).mul_vec3(Vec3::new(
+                controller.direction.x,
+                0.0,
+                -controller.direction.y,
+            )) * speed;
+
+        velocity.linvel = Vec3::new(
+            planar_velocity.x,
+            velocity.linvel.y - 9.8 * time.delta_seconds(),
+            planar_velocity.z,
+        );
+
+        if controller.jump {
+            velocity.linvel.y = 3.0;
+        }
+        println!("{}", velocity.linvel);
+
+        body.translation = Some(velocity.linvel * time.delta_seconds());
     }
 }
 
