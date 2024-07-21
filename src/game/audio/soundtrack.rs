@@ -21,6 +21,7 @@ fn play_soundtrack(
         PlaySoundtrack::Key(key) => *key,
         PlaySoundtrack::Disable => return,
     };
+    /*
     commands.spawn((
         AudioSourceBundle {
             source: soundtrack_handles[&soundtrack_key].clone_weak(),
@@ -30,7 +31,7 @@ fn play_soundtrack(
             },
         },
         IsSoundtrack,
-    ));
+        ));*/
 }
 
 /// Trigger this event to play or disable the soundtrack.

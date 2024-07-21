@@ -3,9 +3,11 @@
 //! If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/latest/examples/movement/physics_in_fixed_timestep.rs).
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{input::mouse::MouseMotion, prelude::*};
 
 use crate::AppSet;
+
+use super::spawn::player::CameraPivot;
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
@@ -16,10 +18,10 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     // Apply movement based on controls.
-    app.register_type::<(Movement, WrapWithinWindow)>();
+    app.register_type::<Movement>();
     app.add_systems(
         Update,
-        (apply_movement, wrap_within_window)
+        (apply_movement, rotate_camera)
             .chain()
             .in_set(AppSet::Update),
     );
@@ -35,16 +37,16 @@ fn record_movement_controller(
 ) {
     // Collect directional input.
     let mut intent = Vec2::ZERO;
-    if input.pressed(KeyCode::KeyW) || input.pressed(KeyCode::ArrowUp) {
+    if input.pressed(KeyCode::KeyW) {
         intent.y += 1.0;
     }
-    if input.pressed(KeyCode::KeyS) || input.pressed(KeyCode::ArrowDown) {
+    if input.pressed(KeyCode::KeyS) {
         intent.y -= 1.0;
     }
-    if input.pressed(KeyCode::KeyA) || input.pressed(KeyCode::ArrowLeft) {
+    if input.pressed(KeyCode::KeyA) {
         intent.x -= 1.0;
     }
-    if input.pressed(KeyCode::KeyD) || input.pressed(KeyCode::ArrowRight) {
+    if input.pressed(KeyCode::KeyD) {
         intent.x += 1.0;
     }
 
@@ -73,24 +75,21 @@ fn apply_movement(
     mut movement_query: Query<(&MovementController, &Movement, &mut Transform)>,
 ) {
     for (controller, movement, mut transform) in &mut movement_query {
-        let velocity = movement.speed * controller.0;
+        let velocity = controller.0;
         transform.translation += velocity.extend(0.0) * time.delta_seconds();
     }
 }
 
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct WrapWithinWindow;
-
-fn wrap_within_window(
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    mut wrap_query: Query<&mut Transform, With<WrapWithinWindow>>,
+fn rotate_camera(
+    mut pivot: Query<&mut Transform, With<CameraPivot>>,
+    mut mouse_motion: EventReader<MouseMotion>,
 ) {
-    let size = window_query.single().size() + 256.0;
-    let half_size = size / 2.0;
-    for mut transform in &mut wrap_query {
-        let position = transform.translation.xy();
-        let wrapped = (position + half_size).rem_euclid(size) - half_size;
-        transform.translation = wrapped.extend(transform.translation.z);
+    for mut transform in pivot.iter_mut() {
+        for motion in mouse_motion.read() {
+            let yaw = -motion.delta.x * 0.003;
+            let pitch = -motion.delta.y * 0.002;
+            transform.rotate_y(yaw);
+            transform.rotate_local_x(pitch);
+        }
     }
 }
