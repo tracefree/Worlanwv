@@ -106,9 +106,8 @@ fn apply_movement(
         );
 
         if controller.jump {
-            velocity.linvel.y = 3.0;
+            velocity.linvel.y = 4.0;
         }
-        println!("{}", velocity.linvel);
 
         body.translation = Some(velocity.linvel * time.delta_seconds());
     }
