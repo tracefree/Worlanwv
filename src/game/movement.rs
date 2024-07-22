@@ -8,7 +8,7 @@ use bevy_rapier3d::{control::KinematicCharacterController, dynamics::Velocity};
 
 use crate::AppSet;
 
-use super::spawn::player::CameraPivot;
+use super::spawn::{level::CycleChanged, player::CameraPivot};
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
@@ -38,6 +38,7 @@ pub struct MovementController {
 fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut MovementController>,
+    mut commands: Commands,
 ) {
     // Collect directional input.
     let mut intent = Vec2::ZERO;
@@ -66,6 +67,10 @@ fn record_movement_controller(
         } else {
             controller.jump = false;
         }
+    }
+
+    if input.just_pressed(KeyCode::ArrowRight) {
+        commands.trigger(CycleChanged(super::spawn::level::Cycle::Two));
     }
 }
 
@@ -108,8 +113,6 @@ fn apply_movement(
         if controller.jump {
             velocity.linvel.y = 4.0;
         }
-
-        println!("{}", velocity.linvel.y);
 
         body.translation = Some(velocity.linvel * time.delta_seconds());
     }
