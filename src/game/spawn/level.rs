@@ -1,39 +1,22 @@
 //! Spawn the main level by triggering other observers.
 
-use std::{any::Any, f32::consts::PI};
+use std::f32::consts::PI;
 
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
-    prelude::ColliderDisabled,
 };
+
+use crate::game::logic::Cycle;
 
 use super::player::SpawnPlayer;
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level);
-    app.observe(on_cycle_changed);
-    app.insert_resource(CurrentCycle(Cycle::One));
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_systems(Update, spawn_colliders);
 }
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Cycle {
-    One,
-    Two,
-    Three,
-}
-
-#[derive(Resource)]
-pub struct CurrentCycle(Cycle);
-
-#[derive(Component)]
-pub struct BelongsToCycle(Cycle);
-
-#[derive(Event)]
-pub struct CycleChanged(pub Cycle);
 
 #[derive(Event, Debug)]
 pub struct SpawnLevel;
@@ -68,16 +51,16 @@ fn spawn_level(
             scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cycle_1.glb")),
             ..default()
         })
-        .insert(BelongsToCycle(Cycle::One));
+        .insert(Cycle::One);
 
     // Cycle 2
     commands
         .spawn(SceneBundle {
             scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cycle_2.glb")),
+            transform: Transform::from_xyz(0.0, -200.0, 0.0),
             ..default()
         })
-        .insert(BelongsToCycle(Cycle::Two))
-        .insert(Visibility::Hidden);
+        .insert(Cycle::Two);
 
     // Lights
     commands.spawn(DirectionalLightBundle {
@@ -99,7 +82,6 @@ fn spawn_colliders(
     mut commands: Commands,
     scene_objects: Query<(Entity, &Name, &Handle<Mesh>), Added<Name>>,
     meshes: ResMut<Assets<Mesh>>,
-    cycle: Res<CurrentCycle>,
 ) {
     for (entity, name, mesh) in scene_objects.iter() {
         if !name.as_str().contains("_col") {
@@ -108,28 +90,7 @@ fn spawn_colliders(
         let mesh = meshes.get(mesh).unwrap();
         commands
             .entity(entity)
-            .insert(BelongsToCycle(cycle.0))
             .insert(RigidBody::Fixed)
             .insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
-    }
-}
-
-fn on_cycle_changed(
-    trigger: Trigger<CycleChanged>,
-    mut current_cycle: ResMut<CurrentCycle>,
-    colliders: Query<(Entity, &BelongsToCycle)>,
-    mut commands: Commands,
-) {
-    println!("CycleChanged");
-    current_cycle.0 = trigger.event().0;
-    for (entity, cycle) in colliders.iter() {
-        if cycle.0 != current_cycle.0 {
-            commands.entity(entity).insert(ColliderDisabled);
-            commands.entity(entity).insert(Visibility::Hidden);
-        } else {
-            println!("{}: {:?}", commands.entity(entity).id(), cycle.0);
-            commands.entity(entity).remove::<ColliderDisabled>();
-            commands.entity(entity).remove::<Visibility>();
-        }
     }
 }
