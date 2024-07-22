@@ -28,7 +28,11 @@ pub struct Player;
 #[derive(Component, Debug)]
 pub struct CameraPivot;
 
-fn spawn_player(_trigger: Trigger<SpawnPlayer>, mut commands: Commands) {
+fn spawn_player(
+    _trigger: Trigger<SpawnPlayer>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
     commands
         .spawn((
             Name::new("Player"),
@@ -80,6 +84,11 @@ fn spawn_player(_trigger: Trigger<SpawnPlayer>, mut commands: Commands) {
                                     bevy::pbr::ScreenSpaceAmbientOcclusionQualityLevel::High,
                             },
                             ..default()
+                        })
+                        .insert(EnvironmentMapLight {
+                            diffuse_map: asset_server.load("textures/cubemap.ktx2"),
+                            specular_map: asset_server.load("textures/cubemap.ktx2"),
+                            intensity: light_consts::lux::AMBIENT_DAYLIGHT,
                         })
                         .insert(TemporalAntiAliasBundle::default());
                 });

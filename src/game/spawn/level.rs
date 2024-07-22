@@ -5,16 +5,13 @@ use std::f32::consts::PI;
 use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_rapier3d::{
     dynamics::RigidBody,
-    geometry::{Collider, ColliderDisabled, ComputedColliderShape},
+    geometry::{Collider, ComputedColliderShape},
 };
 
 use super::player::SpawnPlayer;
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(spawn_level).insert_resource(AmbientLight {
-        brightness: 500.0,
-        ..default()
-    });
+    app.observe(spawn_level);
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_systems(Update, spawn_colliders);
 }
