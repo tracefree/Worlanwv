@@ -6,16 +6,22 @@ use bevy::{color::palettes::tailwind, prelude::*};
 use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
+    plugin::RapierContext,
+    prelude::{
+        ActiveCollisionTypes, ActiveEvents, CollisionEvent, ContactForceEvent, GravityScale,
+        KinematicCharacterControllerOutput,
+    },
 };
 
 use crate::game::logic::Cycle;
 
-use super::player::SpawnPlayer;
+use super::player::{Player, SpawnPlayer};
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level);
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_systems(Update, spawn_colliders);
+    app.add_systems(Update, (display_intersection_info));
 }
 
 #[derive(Event, Debug)]
@@ -91,6 +97,47 @@ fn spawn_colliders(
         commands
             .entity(entity)
             .insert(RigidBody::Fixed)
+            .insert(GravityScale(0.0))
+            .insert(ActiveCollisionTypes::all())
             .insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
+    }
+}
+
+/* A system that displays the events. */
+fn display_events(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut contact_force_events: EventReader<ContactForceEvent>,
+) {
+    for collision_event in collision_events.read() {
+        println!("Received collision event: {:?}", collision_event);
+    }
+
+    for contact_force_event in contact_force_events.read() {
+        println!("Received contact force event: {:?}", contact_force_event);
+    }
+}
+
+fn display_intersection_info(
+    rapier_context: Res<RapierContext>,
+    mut player: Query<(Entity, &mut Transform), With<Player>>,
+) {
+    /* Find the intersection pair, if it exists, between two colliders. */
+    let (player, mut transform) = player.single_mut();
+    for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {
+        if intersecting {
+            transform.translation += Vec3::new(0.0, 0.3, 0.3);
+        }
+    }
+}
+
+/* Read the character controller collisions stored in the character controller’s output. */
+fn read_character_controller_collisions(
+    mut character_controller_outputs: Query<&mut KinematicCharacterControllerOutput>,
+) {
+    for mut output in character_controller_outputs.iter_mut() {
+        for collision in &output.collisions {
+            println!("{}", collision.translation_remaining);
+            // Do something with that collision information.
+        }
     }
 }

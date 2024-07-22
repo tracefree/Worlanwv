@@ -9,6 +9,7 @@ use bevy_rapier3d::{
     control::KinematicCharacterController,
     dynamics::{Ccd, RigidBody, Velocity},
     geometry::Collider,
+    prelude::{ActiveCollisionTypes, ActiveEvents, Sensor},
 };
 
 use crate::{game::movement::MovementController, screen::Screen};
@@ -44,7 +45,8 @@ fn spawn_player(
                 ..default()
             },
             RigidBody::KinematicPositionBased,
-            Ccd::enabled(),
+            Sensor,
+            //    Ccd::enabled(),
             Velocity {
                 linvel: Vec3::ZERO,
                 angvel: Vec3::ZERO,
