@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod game;

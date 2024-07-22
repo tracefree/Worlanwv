@@ -21,7 +21,7 @@ pub(super) fn plugin(app: &mut App) {
     // Apply movement based on controls.
     app.register_type::<Movement>();
     app.add_systems(
-        FixedUpdate,
+        Update,
         (apply_movement, rotate_camera)
             .chain()
             .in_set(AppSet::Update),
@@ -38,7 +38,6 @@ pub struct MovementController {
 fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut MovementController>,
-    mut commands: Commands,
 ) {
     // Collect directional input.
     let mut intent = Vec2::ZERO;
