@@ -2,14 +2,14 @@
 
 use std::f32::consts::PI;
 
-use bevy::{color::palettes::tailwind, prelude::*};
+use bevy::{color::palettes::tailwind, math::VectorSpace, prelude::*};
 use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
     plugin::RapierContext,
     prelude::{
         ActiveCollisionTypes, ActiveEvents, CollisionEvent, ContactForceEvent, GravityScale,
-        KinematicCharacterControllerOutput,
+        KinematicCharacterControllerOutput, Velocity,
     },
 };
 
@@ -26,6 +26,9 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Event, Debug)]
 pub struct SpawnLevel;
+
+#[derive(Component)]
+struct Terrain;
 
 fn spawn_level(
     _trigger: Trigger<SpawnLevel>,
@@ -100,6 +103,10 @@ fn spawn_colliders(
             .insert(GravityScale(0.0))
             .insert(ActiveCollisionTypes::all())
             .insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
+
+        if name.as_str().contains("terrain") {
+            commands.entity(entity).insert(Terrain);
+        }
     }
 }
 
@@ -119,13 +126,20 @@ fn display_events(
 
 fn display_intersection_info(
     rapier_context: Res<RapierContext>,
-    mut player: Query<(Entity, &mut Transform), With<Player>>,
+    mut player: Query<(Entity, &mut Transform, &mut Velocity), With<Player>>,
+    terrain: Query<Entity, With<Terrain>>,
 ) {
     /* Find the intersection pair, if it exists, between two colliders. */
-    let (player, mut transform) = player.single_mut();
-    for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {
+    let (player, mut transform, mut velocity) = player.single_mut();
+    for (_, collider, intersecting) in rapier_context.intersection_pairs_with(player) {
         if intersecting {
-            transform.translation += Vec3::new(0.0, 0.3, 0.3);
+            if collider == terrain.single() {
+                transform.translation += Vec3::new(0.0, 0.1, 0.0);
+            } else {
+                let back = transform.local_z() * 0.1;
+                transform.translation += back;
+            }
+            velocity.linvel = Vec3::ZERO;
         }
     }
 }
