@@ -21,7 +21,7 @@ pub(super) fn plugin(app: &mut App) {
     // Apply movement based on controls.
     app.register_type::<Movement>();
     app.add_systems(
-        Update,
+        FixedUpdate,
         (apply_movement, rotate_camera)
             .chain()
             .in_set(AppSet::Update),
@@ -108,6 +108,8 @@ fn apply_movement(
         if controller.jump {
             velocity.linvel.y = 4.0;
         }
+
+        println!("{}", velocity.linvel.y);
 
         body.translation = Some(velocity.linvel * time.delta_seconds());
     }

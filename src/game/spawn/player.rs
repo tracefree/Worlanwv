@@ -51,6 +51,8 @@ fn spawn_player(
             },
             KinematicCharacterController {
                 max_slope_climb_angle: 45.0_f32.to_radians(),
+                slide: true,
+                min_slope_slide_angle: 30.0_f32.to_radians(),
                 ..default()
             },
             Collider::cuboid(0.3, 0.8, 0.3),
