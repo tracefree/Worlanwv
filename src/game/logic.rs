@@ -5,7 +5,7 @@ use bevy::prelude::*;
 
 use crate::AppSet;
 
-use super::spawn::level::{Sun, SunPivot};
+use super::spawn::level::{SkyMaterial, Sun, SunPivot};
 
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
@@ -77,6 +77,8 @@ fn animate_sun(
     mut sun: Query<&mut DirectionalLight, With<Sun>>,
     mut day_progress: ResMut<DayProgress>,
     mut environment: Query<&mut EnvironmentMapLight, With<Camera>>,
+    sky_materials: Query<&Handle<SkyMaterial>>,
+    mut mats: ResMut<Assets<SkyMaterial>>,
     current_cycle: Res<CurrentCycle>,
     time: Res<Time>,
     mut commands: Commands,
@@ -95,4 +97,10 @@ fn animate_sun(
     sun.single_mut().illuminance = light_consts::lux::AMBIENT_DAYLIGHT * brightness_factor;
     environment.single_mut().intensity =
         0.0.lerp(light_consts::lux::DARK_OVERCAST_DAY, brightness_factor);
+
+    for material in sky_materials.iter() {
+        if let Some(sky) = mats.get_mut(material) {
+            sky.time = brightness_factor;
+        }
+    }
 }

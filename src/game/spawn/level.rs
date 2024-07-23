@@ -2,7 +2,12 @@
 
 use std::f32::consts::PI;
 
-use bevy::{color::palettes::tailwind, prelude::*, render::view::NoFrustumCulling};
+use bevy::{
+    color::palettes::tailwind,
+    pbr::NotShadowCaster,
+    prelude::*,
+    render::{render_resource::AsBindGroup, view::NoFrustumCulling},
+};
 use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
@@ -17,6 +22,7 @@ use super::player::{Player, SpawnPlayer};
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level);
     // TODO: Do this once after loading geometry, don't check every frame
+    app.add_plugins(MaterialPlugin::<SkyMaterial>::default());
     app.add_systems(Update, spawn_colliders);
     app.add_systems(FixedUpdate, prevent_collider_overlap);
 }
@@ -36,11 +42,28 @@ pub struct SunPivot;
 #[derive(Component)]
 pub struct Sun;
 
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+pub struct SkyMaterial {
+    #[uniform(0)]
+    pub time: f32,
+}
+
+impl Material for SkyMaterial {
+    fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
+        "shaders/sky_shader.wgsl".into()
+    }
+
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Blend
+    }
+}
+
 fn spawn_level(
     _trigger: Trigger<SpawnLevel>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut sky_materials: ResMut<Assets<SkyMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
     // The only thing we have in our level is a player,
@@ -114,6 +137,16 @@ fn spawn_level(
                 })
                 .insert(NoFrustumCulling);
         });
+
+    // Skybox
+    commands
+        .spawn(MaterialMeshBundle {
+            mesh: meshes.add(Cuboid::new(2500.0, 2500.0, 2500.0)),
+            material: sky_materials.add(SkyMaterial { time: 0.0 }),
+            transform: Transform::from_scale(Vec3::new(-1.0, -1.0, -1.0)),
+            ..default()
+        })
+        .insert(NotShadowCaster);
 }
 
 fn spawn_colliders(
