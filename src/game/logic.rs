@@ -1,11 +1,18 @@
+use core::time;
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 
 use crate::AppSet;
 
+use super::spawn::level::{Sun, SunPivot};
+
 pub(super) fn plugin(app: &mut App) {
-    app.insert_resource(CurrentCycle(Cycle::One));
+    app.insert_resource(CurrentCycle(Cycle::One))
+        .insert_resource(DayProgress(0.0));
     app.observe(on_cycle_changed);
     app.add_systems(Update, handle_input.in_set(AppSet::RecordInput));
+    app.add_systems(Update, animate_sun.in_set(AppSet::Update));
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
@@ -30,6 +37,9 @@ pub struct CurrentCycle(Cycle);
 
 #[derive(Event)]
 pub struct CycleChanged(pub Cycle);
+
+#[derive(Resource)]
+pub struct DayProgress(f32);
 
 fn on_cycle_changed(
     trigger: Trigger<CycleChanged>,
@@ -60,4 +70,27 @@ fn handle_input(
         let next_cycle = current_cycle.0.next();
         commands.trigger(CycleChanged(next_cycle));
     }
+}
+
+fn animate_sun(
+    mut pivot: Query<&mut Transform, With<SunPivot>>,
+    mut sun: Query<&mut DirectionalLight, With<Sun>>,
+    mut day_progress: ResMut<DayProgress>,
+    current_cycle: Res<CurrentCycle>,
+    time: Res<Time>,
+    mut commands: Commands,
+) {
+    day_progress.0 += 0.25 * time.delta_seconds();
+    if day_progress.0 >= 1.0 {
+        day_progress.0 -= 1.0;
+        let next_cycle = current_cycle.0.next();
+        commands.trigger(CycleChanged(next_cycle));
+    }
+
+    let mut pivot = pivot.single_mut();
+    let angle = PI * day_progress.0;
+    println!("Sung angle {}", angle);
+    pivot.rotation = Quat::from_rotation_z(angle);
+    //  sun.single_mut().illuminance =
+    //      light_consts::lux::AMBIENT_DAYLIGHT * (day_progress.0 - 0.5).abs().sin();
 }
