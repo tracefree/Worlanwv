@@ -99,7 +99,7 @@ fn spawn_level(
                     ..default()
                 })
                 .insert(MaterialMeshBundle {
-                    mesh: meshes.add(Sphere::new(100.0)),
+                    mesh: meshes.add(Sphere::new(50.0)),
                     material: materials.add(StandardMaterial {
                         base_color: Color::from(tailwind::YELLOW_950),
                         emissive: LinearRgba::new(100.0, 80.0, 10.0, 1.0),

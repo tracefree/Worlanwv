@@ -76,6 +76,7 @@ fn animate_sun(
     mut pivot: Query<&mut Transform, With<SunPivot>>,
     mut sun: Query<&mut DirectionalLight, With<Sun>>,
     mut day_progress: ResMut<DayProgress>,
+    mut environment: Query<&mut EnvironmentMapLight, With<Camera>>,
     current_cycle: Res<CurrentCycle>,
     time: Res<Time>,
     mut commands: Commands,
@@ -89,8 +90,9 @@ fn animate_sun(
 
     let mut pivot = pivot.single_mut();
     let angle = PI * day_progress.0;
-    println!("Sung angle {}", angle);
-    pivot.rotation = Quat::from_rotation_z(angle);
-    //  sun.single_mut().illuminance =
-    //      light_consts::lux::AMBIENT_DAYLIGHT * (day_progress.0 - 0.5).abs().sin();
+    pivot.rotation = Quat::from_euler(EulerRot::YXZ, 0.0, -PI / 4.0, angle);
+    let brightness_factor = (day_progress.0 * PI).sin();
+    sun.single_mut().illuminance = light_consts::lux::AMBIENT_DAYLIGHT * brightness_factor;
+    environment.single_mut().intensity =
+        0.0.lerp(light_consts::lux::DARK_OVERCAST_DAY, brightness_factor);
 }

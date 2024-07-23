@@ -26,6 +26,9 @@ pub struct SpawnPlayer;
 #[reflect(Component)]
 pub struct Player;
 
+#[derive(Component)]
+pub struct PlayerCamera;
+
 #[derive(Component, Debug)]
 pub struct CameraPivot;
 
@@ -68,7 +71,8 @@ fn spawn_player(
                 })
                 .with_children(|pivot| {
                     pivot
-                        .spawn(Camera3dBundle {
+                        .spawn(PlayerCamera)
+                        .insert(Camera3dBundle {
                             camera: Camera {
                                 order: 1,
                                 hdr: true,
@@ -89,11 +93,11 @@ fn spawn_player(
                             },
                             ..default()
                         })
-                        /*         .insert(EnvironmentMapLight {
+                        .insert(EnvironmentMapLight {
                             diffuse_map: asset_server.load("textures/cubemap.ktx2"),
                             specular_map: asset_server.load("textures/cubemap.ktx2"),
                             intensity: light_consts::lux::OVERCAST_DAY,
-                        }) */
+                        })
                         .insert(TemporalAntiAliasBundle::default());
                 });
         });
