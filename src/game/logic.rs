@@ -83,7 +83,7 @@ fn animate_sun(
     time: Res<Time>,
     mut commands: Commands,
 ) {
-    day_progress.0 += 0.25 * time.delta_seconds();
+    day_progress.0 += time.delta_seconds() / 30.0;
     if day_progress.0 >= 1.0 {
         day_progress.0 -= 1.0;
         let next_cycle = current_cycle.0.next();
