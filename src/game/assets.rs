@@ -61,11 +61,11 @@ impl FromWorld for HandleMap<SfxKey> {
         [
             (
                 SfxKey::ButtonHover,
-                asset_server.load("audio/sfx/button_hover.ogg"),
+                asset_server.load("audio/sfx/button_hover.wav"),
             ),
             (
                 SfxKey::ButtonPress,
-                asset_server.load("audio/sfx/button_press.ogg"),
+                asset_server.load("audio/sfx/button_click.wav"),
             ),
             (SfxKey::Step1, asset_server.load("audio/sfx/step1.ogg")),
             (SfxKey::Step2, asset_server.load("audio/sfx/step2.ogg")),
