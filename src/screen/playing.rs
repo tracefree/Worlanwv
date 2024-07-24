@@ -3,6 +3,7 @@
 use bevy::{
     input::common_conditions::input_just_pressed,
     prelude::*,
+    ui::Val::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
 
@@ -47,12 +48,30 @@ fn enter_menu(mut commands: Commands, mut windows: Query<&mut Window, With<Prima
     commands
         .ui_root()
         .insert(StateScoped(PlayState::InMenu))
-        .with_children(|children| {
-            children.button("Play").insert(TitleAction::Play);
-            children.button("Credits").insert(TitleAction::Credits);
+        .with_children(|root| {
+            root.spawn(NodeBundle {
+                style: Style {
+                    width: Percent(30.0),
+                    height: Percent(65.0),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    align_self: AlignSelf::Start,
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Px(10.0),
+                    position_type: PositionType::Absolute,
+                    left: Px(0.0),
+                    bottom: Px(0.0),
+                    ..default()
+                },
+                ..default()
+            })
+            .with_children(|container| {
+                container.button("Play").insert(TitleAction::Play);
+                container.button("Credits").insert(TitleAction::Credits);
 
-            #[cfg(not(target_family = "wasm"))]
-            children.button("Exit").insert(TitleAction::Exit);
+                #[cfg(not(target_family = "wasm"))]
+                container.button("Exit").insert(TitleAction::Exit);
+            });
         });
 }
 

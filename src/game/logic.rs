@@ -6,7 +6,10 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
-use crate::{screen::PlayState, AppSet};
+use crate::{
+    screen::{PlayState, Screen},
+    AppSet,
+};
 
 use super::{
     assets::SfxKey,
@@ -18,13 +21,13 @@ pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
         .insert_resource(DayProgress(0.0));
     app.observe(on_cycle_changed);
-    app.add_systems(Update, handle_input.in_set(AppSet::RecordInput));
     app.add_systems(
         Update,
         animate_sun
             .run_if(in_state(PlayState::InGame))
             .in_set(AppSet::Update),
     );
+    app.add_systems(OnEnter(PlayState::InMenu), animate_sun);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
@@ -35,7 +38,7 @@ pub enum Cycle {
 }
 
 impl Cycle {
-    fn next(self: Self) -> Self {
+    pub fn next(self: Self) -> Self {
         match self {
             Cycle::One => Cycle::Two,
             Cycle::Two => Cycle::Three,
@@ -45,7 +48,7 @@ impl Cycle {
 }
 
 #[derive(Resource)]
-pub struct CurrentCycle(Cycle);
+pub struct CurrentCycle(pub Cycle);
 
 #[derive(Event)]
 pub struct CycleChanged(pub Cycle);
@@ -73,18 +76,6 @@ fn on_cycle_changed(
         }
     }
     commands.trigger(PlaySfx::Key(SfxKey::CycleChange));
-}
-
-fn handle_input(
-    input: Res<ButtonInput<KeyCode>>,
-    current_cycle: Res<CurrentCycle>,
-    mut windows: Query<&mut Window, With<PrimaryWindow>>,
-    mut commands: Commands,
-) {
-    if input.just_pressed(KeyCode::ArrowRight) {
-        let next_cycle = current_cycle.0.next();
-        commands.trigger(CycleChanged(next_cycle));
-    }
 }
 
 fn animate_sun(

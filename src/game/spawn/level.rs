@@ -15,7 +15,7 @@ use bevy_rapier3d::{
     prelude::{ActiveCollisionTypes, GravityScale, Velocity},
 };
 
-use crate::game::logic::Cycle;
+use crate::{game::logic::Cycle, screen::PlayState};
 
 use super::player::{Player, SpawnPlayer};
 
@@ -24,7 +24,10 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_plugins(MaterialPlugin::<SkyMaterial>::default());
     app.add_systems(Update, spawn_colliders);
-    app.add_systems(FixedUpdate, prevent_collider_overlap);
+    app.add_systems(
+        FixedUpdate,
+        prevent_collider_overlap.run_if(in_state(PlayState::InGame)),
+    );
 }
 
 #[derive(Event, Debug)]
@@ -188,9 +191,10 @@ fn prevent_collider_overlap(
 ) {
     /* Find the intersection pair, if it exists, between two colliders. */
     let (player, mut transform, mut velocity, stuck) = player.single_mut();
-    for (_, collider, intersecting) in rapier_context.intersection_pairs_with(player) {
+    for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {
         if intersecting {
             continue;
+            /*
             if collider == terrain.single() {
                 transform.translation += Vec3::new(0.0, 0.1, 0.0);
             } else {
@@ -198,6 +202,7 @@ fn prevent_collider_overlap(
                 transform.translation += back;
             }
             velocity.linvel = Vec3::ZERO;
+            */
         }
     }
 

@@ -24,12 +24,13 @@ impl<T: Spawn> Widgets for T {
                 style: Style {
                     width: Px(250.0),
                     height: Px(65.0),
+
                     // border: UiRect::all(Px(2.0)),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
                 },
-
+                border_radius: BorderRadius::all(Px(8.0)),
                 border_color: BorderColor(BUTTON_HOVERED_BACKGROUND),
                 ..default()
             },
@@ -119,8 +120,6 @@ impl<T: Spawn> Widgets for T {
 
 /// An extension trait for spawning UI containers.
 pub trait Containers {
-    /// Spawns a root node that covers the full screen
-    /// and centers its content horizontally and vertically.
     fn ui_root(&mut self) -> EntityCommands;
 }
 
@@ -130,8 +129,8 @@ impl Containers for Commands<'_, '_> {
             Name::new("UI Root"),
             NodeBundle {
                 style: Style {
-                    width: Percent(30.0),
-                    height: Percent(65.0),
+                    width: Percent(100.0),
+                    height: Percent(100.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     align_self: AlignSelf::End,
