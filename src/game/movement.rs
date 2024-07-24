@@ -5,7 +5,10 @@
 
 use std::f32::consts::PI;
 
-use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy::{
+    input::{mouse::MouseMotion, InputSystem},
+    prelude::*,
+};
 use bevy_rapier3d::{
     control::KinematicCharacterController, dynamics::Velocity,
     prelude::KinematicCharacterControllerOutput,
@@ -29,15 +32,16 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(PlayState::InGame)),
     );
     app.add_systems(
-        Update,
+        PreUpdate,
         record_movement_controller
             .in_set(AppSet::RecordInput)
+            .after(InputSystem)
             .run_if(in_state(PlayState::InGame)),
     );
 
     // Apply movement based on controls.
     app.add_systems(
-        Update,
+        FixedUpdate,
         (apply_movement, rotate_camera)
             .chain()
             .run_if(in_state(PlayState::InGame))
@@ -82,23 +86,28 @@ fn record_movement_controller(
     // Apply movement intent to controllers.
     for (mut controller, kinematic_output) in controller_query.iter_mut() {
         controller.direction = intent;
-        controller.jump = input.just_pressed(KeyCode::Space) && kinematic_output.grounded;
+        controller.jump = input.pressed(KeyCode::Space) && kinematic_output.grounded;
         if intent.length() < 0.5 || !kinematic_output.grounded {
             footstep_timer.0 = 0.0;
         }
     }
 }
 
+// As per https://github.com/dimforge/bevy_rapier/blob/master/bevy_rapier3d/examples/character_controller3.rs
 fn apply_movement(
     time: Res<Time>,
     mut movement_query: Query<(
         &MovementController,
-        &Velocity,
         &mut KinematicCharacterController,
+        &KinematicCharacterControllerOutput,
     )>,
     camera_pivot: Query<&Transform, With<CameraPivot>>,
+    mut vertical_movement: Local<f32>,
+    mut grounded_timer: Local<f32>,
+    mut prev_in_air: Local<bool>,
+    mut commands: Commands,
 ) {
-    for (controller, velocity, mut body) in &mut movement_query {
+    for (controller, mut body, output) in &mut movement_query {
         let pivot = camera_pivot.single();
         // TODO: Find better way to do this
         let speed = 3.0;
@@ -109,21 +118,31 @@ fn apply_movement(
                 -controller.direction.y,
             )) * speed;
 
-        //velocity.linvel = Vec3::new(planar_velocity.x, velocity.linvel.y, planar_velocity.z);
+        let mut movement = planar_velocity;
+        movement.y = *vertical_movement;
+        if output.grounded {
+            *grounded_timer = 0.5;
+            *vertical_movement = 0.0;
 
-        println!("{}", velocity.linvel.y);
+            // Just landed
+            if *prev_in_air {
+                commands.trigger(PlaySfx::RandomStep);
+            }
+        }
 
-        body.translation = Some(
-            Vec3::new(
-                planar_velocity.x,
-                if controller.jump {
-                    9.0
-                } else {
-                    velocity.linvel.y - 9.8 * time.delta_seconds()
-                },
-                planar_velocity.z,
-            ) * time.delta_seconds(),
-        );
+        *prev_in_air = !output.grounded;
+
+        if *grounded_timer > 0.0 {
+            *grounded_timer -= time.delta_seconds();
+            if controller.jump {
+                *vertical_movement = 4.0;
+                *grounded_timer = 0.0;
+                commands.trigger(PlaySfx::RandomStep);
+            }
+        }
+
+        *vertical_movement -= 9.8 * time.delta_seconds();
+        body.translation = Some(movement * time.delta_seconds());
     }
 }
 

@@ -13,8 +13,8 @@ use bevy_rapier3d::{
     dynamics::{Ccd, RigidBody, Velocity},
     geometry::Collider,
     prelude::{
-        ActiveCollisionTypes, ActiveEvents, CharacterLength, KinematicCharacterControllerOutput,
-        Sensor,
+        ActiveCollisionTypes, ActiveEvents, CharacterAutostep, CharacterLength,
+        KinematicCharacterControllerOutput, Sensor,
     },
 };
 
@@ -56,12 +56,22 @@ fn spawn_player(
             RigidBody::KinematicVelocityBased,
             //    Sensor,
             //    Ccd::enabled(),
-            Velocity {
-                linvel: Vec3::ZERO,
-                angvel: Vec3::ZERO,
-            },
             KinematicCharacterController {
-                snap_to_ground: Some(CharacterLength::Relative(0.5)),
+                custom_mass: Some(5.0),
+                up: Vec3::Y,
+                offset: CharacterLength::Absolute(0.01),
+                slide: true,
+                autostep: Some(CharacterAutostep {
+                    max_height: CharacterLength::Relative(0.3),
+                    min_width: CharacterLength::Relative(0.5),
+                    include_dynamic_bodies: false,
+                }),
+                // Don’t allow climbing slopes larger than 45 degrees.
+                max_slope_climb_angle: 45.0_f32.to_radians(),
+                // Automatically slide down on slopes smaller than 30 degrees.
+                min_slope_slide_angle: 30.0_f32.to_radians(),
+                apply_impulse_to_dynamic_bodies: true,
+                snap_to_ground: Some(CharacterLength::Absolute(0.2)),
                 ..default()
             },
             KinematicCharacterControllerOutput::default(),
