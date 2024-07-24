@@ -24,10 +24,12 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_plugins(MaterialPlugin::<SkyMaterial>::default());
     app.add_systems(Update, spawn_colliders);
+    /*
     app.add_systems(
         FixedUpdate,
         prevent_collider_overlap.run_if(in_state(PlayState::InGame)),
     );
+    */
 }
 
 #[derive(Event, Debug)]
@@ -189,6 +191,7 @@ fn prevent_collider_overlap(
     terrain: Query<Entity, With<Terrain>>,
     mut commands: Commands,
 ) {
+    println!("DBNA");
     /* Find the intersection pair, if it exists, between two colliders. */
     let (player, mut transform, mut velocity, stuck) = player.single_mut();
     for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {

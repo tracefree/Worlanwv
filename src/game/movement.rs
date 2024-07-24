@@ -3,10 +3,18 @@
 //! If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/latest/examples/movement/physics_in_fixed_timestep.rs).
 
-use bevy::{input::mouse::MouseMotion, prelude::*};
-use bevy_rapier3d::{control::KinematicCharacterController, dynamics::Velocity};
+use std::f32::consts::PI;
 
-use crate::{screen::PlayState, AppSet};
+use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy_rapier3d::{
+    control::KinematicCharacterController, dynamics::Velocity,
+    prelude::KinematicCharacterControllerOutput,
+};
+
+use crate::{
+    screen::{PlayState, Screen},
+    AppSet,
+};
 
 use super::{assets::SfxKey, audio::sfx::PlaySfx, spawn::player::CameraPivot};
 
@@ -14,14 +22,20 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.register_type::<MovementController>();
     app.insert_resource(FootstepTimer(0.0));
-    app.add_systems(Update, update_footstep_timer.in_set(AppSet::TickTimers));
     app.add_systems(
         Update,
-        record_movement_controller.in_set(AppSet::RecordInput),
+        update_footstep_timer
+            .in_set(AppSet::TickTimers)
+            .run_if(in_state(PlayState::InGame)),
+    );
+    app.add_systems(
+        Update,
+        record_movement_controller
+            .in_set(AppSet::RecordInput)
+            .run_if(in_state(PlayState::InGame)),
     );
 
     // Apply movement based on controls.
-    app.register_type::<Movement>();
     app.add_systems(
         Update,
         (apply_movement, rotate_camera)
@@ -43,7 +57,7 @@ pub struct FootstepTimer(pub f32);
 
 fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
-    mut controller_query: Query<&mut MovementController>,
+    mut controller_query: Query<(&mut MovementController, &KinematicCharacterControllerOutput)>,
     mut footstep_timer: ResMut<FootstepTimer>,
 ) {
     // Collect directional input.
@@ -65,41 +79,26 @@ fn record_movement_controller(
     // horizontal and vertical movement.
     let intent = intent.normalize_or_zero();
 
-    if intent.length() < 0.5 {
-        footstep_timer.0 = 0.0;
-    }
-
     // Apply movement intent to controllers.
-    for mut controller in &mut controller_query {
+    for (mut controller, kinematic_output) in controller_query.iter_mut() {
         controller.direction = intent;
-        if input.just_pressed(KeyCode::Space) {
-            controller.jump = true;
-        } else {
-            controller.jump = false;
+        controller.jump = input.just_pressed(KeyCode::Space) && kinematic_output.grounded;
+        if intent.length() < 0.5 || !kinematic_output.grounded {
+            footstep_timer.0 = 0.0;
         }
     }
-}
-
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct Movement {
-    /// Since Bevy's default 2D camera setup is scaled such that
-    /// one unit is one pixel, you can think of this as
-    /// "How many pixels per second should the player move?"
-    /// Note that physics engines may use different unit/pixel ratios.
-    pub speed: f32,
 }
 
 fn apply_movement(
     time: Res<Time>,
     mut movement_query: Query<(
         &MovementController,
-        &mut Velocity,
+        &Velocity,
         &mut KinematicCharacterController,
     )>,
     camera_pivot: Query<&Transform, With<CameraPivot>>,
 ) {
-    for (controller, mut velocity, mut body) in &mut movement_query {
+    for (controller, velocity, mut body) in &mut movement_query {
         let pivot = camera_pivot.single();
         // TODO: Find better way to do this
         let speed = 3.0;
@@ -110,17 +109,21 @@ fn apply_movement(
                 -controller.direction.y,
             )) * speed;
 
-        velocity.linvel = Vec3::new(
-            planar_velocity.x,
-            velocity.linvel.y - 9.8 * time.delta_seconds(),
-            planar_velocity.z,
+        //velocity.linvel = Vec3::new(planar_velocity.x, velocity.linvel.y, planar_velocity.z);
+
+        println!("{}", velocity.linvel.y);
+
+        body.translation = Some(
+            Vec3::new(
+                planar_velocity.x,
+                if controller.jump {
+                    9.0
+                } else {
+                    velocity.linvel.y - 9.8 * time.delta_seconds()
+                },
+                planar_velocity.z,
+            ) * time.delta_seconds(),
         );
-
-        if controller.jump {
-            velocity.linvel.y = 4.0;
-        }
-
-        body.translation = Some(velocity.linvel * time.delta_seconds());
     }
 }
 
@@ -132,8 +135,15 @@ fn rotate_camera(
         for motion in mouse_motion.read() {
             let yaw = -motion.delta.x * 0.003;
             let pitch = -motion.delta.y * 0.002;
+
             transform.rotate_y(yaw);
-            transform.rotate_local_x(pitch);
+
+            let current_pitch = transform.rotation.to_euler(EulerRot::YXZ).1;
+            if (current_pitch > -60.0_f32.to_radians() && pitch < 0.0)
+                || (current_pitch < 60.0_f32.to_radians() && pitch > 0.0)
+            {
+                transform.rotate_local_x(pitch);
+            }
         }
     }
 }
@@ -144,7 +154,6 @@ fn update_footstep_timer(
     mut commands: Commands,
 ) {
     footstep_timer.0 += time.delta_seconds();
-    // println!("Timer {}", footstep_timer.0);
     if footstep_timer.0 >= 0.5 {
         footstep_timer.0 = 0.0;
         commands.trigger(PlaySfx::RandomStep);

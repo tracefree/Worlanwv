@@ -12,7 +12,10 @@ use bevy_rapier3d::{
     control::KinematicCharacterController,
     dynamics::{Ccd, RigidBody, Velocity},
     geometry::Collider,
-    prelude::{ActiveCollisionTypes, ActiveEvents, Sensor},
+    prelude::{
+        ActiveCollisionTypes, ActiveEvents, CharacterLength, KinematicCharacterControllerOutput,
+        Sensor,
+    },
 };
 
 use crate::{game::movement::MovementController, screen::Screen};
@@ -45,12 +48,12 @@ fn spawn_player(
             Name::new("Player"),
             Player,
             MovementController::default(),
-            //    StateScoped(Screen::Playing),
+            StateScoped(Screen::Playing),
             SpatialBundle {
-                transform: Transform::from_xyz(0.0, 20.0, 0.0),
+                transform: Transform::from_xyz(0.0, 10.0, 0.0),
                 ..default()
             },
-            RigidBody::KinematicPositionBased,
+            RigidBody::KinematicVelocityBased,
             //    Sensor,
             //    Ccd::enabled(),
             Velocity {
@@ -58,12 +61,11 @@ fn spawn_player(
                 angvel: Vec3::ZERO,
             },
             KinematicCharacterController {
-                max_slope_climb_angle: 45.0_f32.to_radians(),
-                slide: true,
-                min_slope_slide_angle: 30.0_f32.to_radians(),
+                snap_to_ground: Some(CharacterLength::Relative(0.5)),
                 ..default()
             },
-            Collider::cuboid(0.3, 0.8, 0.3),
+            KinematicCharacterControllerOutput::default(),
+            Collider::capsule_y(0.5, 0.3),
         ))
         .with_children(|player| {
             player
