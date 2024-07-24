@@ -6,7 +6,7 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
-use crate::AppSet;
+use crate::{screen::PlayState, AppSet};
 
 use super::{
     assets::SfxKey,
@@ -19,7 +19,12 @@ pub(super) fn plugin(app: &mut App) {
         .insert_resource(DayProgress(0.0));
     app.observe(on_cycle_changed);
     app.add_systems(Update, handle_input.in_set(AppSet::RecordInput));
-    app.add_systems(Update, animate_sun.in_set(AppSet::Update));
+    app.add_systems(
+        Update,
+        animate_sun
+            .run_if(in_state(PlayState::InGame))
+            .in_set(AppSet::Update),
+    );
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
@@ -79,21 +84,6 @@ fn handle_input(
     if input.just_pressed(KeyCode::ArrowRight) {
         let next_cycle = current_cycle.0.next();
         commands.trigger(CycleChanged(next_cycle));
-    }
-
-    if input.just_pressed(KeyCode::Escape) {
-        // Grab cursor
-        let mut primary_window = windows.single_mut();
-        match primary_window.cursor.grab_mode {
-            CursorGrabMode::None => {
-                primary_window.cursor.grab_mode = CursorGrabMode::Locked;
-                primary_window.cursor.visible = false;
-            }
-            _ => {
-                primary_window.cursor.grab_mode = CursorGrabMode::None;
-                primary_window.cursor.visible = true;
-            }
-        }
     }
 }
 

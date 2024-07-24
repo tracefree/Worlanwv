@@ -10,6 +10,7 @@ use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.init_state::<Screen>();
+    app.add_sub_state::<PlayState>();
     app.enable_state_scoped_entities::<Screen>();
 
     app.add_plugins((
@@ -30,4 +31,12 @@ pub enum Screen {
     Credits,
     #[default]
     Playing,
+}
+
+#[derive(SubStates, Debug, Hash, PartialEq, Eq, Clone, Default)]
+#[source(Screen = Screen::Playing)]
+pub enum PlayState {
+    #[default]
+    InMenu,
+    InGame,
 }

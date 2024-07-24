@@ -6,7 +6,7 @@
 use bevy::{input::mouse::MouseMotion, prelude::*};
 use bevy_rapier3d::{control::KinematicCharacterController, dynamics::Velocity};
 
-use crate::AppSet;
+use crate::{screen::PlayState, AppSet};
 
 use super::spawn::player::CameraPivot;
 
@@ -24,6 +24,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         (apply_movement, rotate_camera)
             .chain()
+            .run_if(in_state(PlayState::InGame))
             .in_set(AppSet::Update),
     );
 }
