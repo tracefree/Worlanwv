@@ -44,10 +44,10 @@ impl FromWorld for HandleMap<ImageKey> {
 pub enum SfxKey {
     ButtonHover,
     ButtonPress,
-    Step1,
-    Step2,
-    Step3,
-    Step4,
+    GrassStep1,
+    GrassStep2,
+    GrassStep3,
+    GrassStep4,
     CycleChange,
 }
 
@@ -67,10 +67,22 @@ impl FromWorld for HandleMap<SfxKey> {
                 SfxKey::ButtonPress,
                 asset_server.load("audio/sfx/button_click.wav"),
             ),
-            (SfxKey::Step1, asset_server.load("audio/sfx/step1.ogg")),
-            (SfxKey::Step2, asset_server.load("audio/sfx/step2.ogg")),
-            (SfxKey::Step3, asset_server.load("audio/sfx/step3.ogg")),
-            (SfxKey::Step4, asset_server.load("audio/sfx/step4.ogg")),
+            (
+                SfxKey::GrassStep1,
+                asset_server.load("audio/sfx/footsteps/grass_1.wav"),
+            ),
+            (
+                SfxKey::GrassStep2,
+                asset_server.load("audio/sfx/footsteps/grass_2.wav"),
+            ),
+            (
+                SfxKey::GrassStep3,
+                asset_server.load("audio/sfx/footsteps/grass_3.wav"),
+            ),
+            (
+                SfxKey::GrassStep4,
+                asset_server.load("audio/sfx/footsteps/grass_4.wav"),
+            ),
             (
                 SfxKey::CycleChange,
                 asset_server.load("audio/sfx/cycle_change.wav"),

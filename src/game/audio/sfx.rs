@@ -1,4 +1,7 @@
-use bevy::{audio::PlaybackMode, prelude::*};
+use bevy::{
+    audio::{PlaybackMode, Volume},
+    prelude::*,
+};
 use rand::seq::SliceRandom;
 
 use crate::game::assets::{HandleMap, SfxKey};
@@ -20,6 +23,7 @@ fn play_sfx(
         source: sfx_handles[&sfx_key].clone_weak(),
         settings: PlaybackSettings {
             mode: PlaybackMode::Despawn,
+            volume: Volume::new(10.0),
             ..default()
         },
     });
@@ -33,8 +37,13 @@ pub enum PlaySfx {
 }
 
 fn random_step() -> SfxKey {
-    [SfxKey::Step1, SfxKey::Step2, SfxKey::Step3, SfxKey::Step4]
-        .choose(&mut rand::thread_rng())
-        .copied()
-        .unwrap()
+    [
+        SfxKey::GrassStep1,
+        SfxKey::GrassStep2,
+        SfxKey::GrassStep3,
+        SfxKey::GrassStep4,
+    ]
+    .choose(&mut rand::thread_rng())
+    .copied()
+    .unwrap()
 }

@@ -8,11 +8,13 @@ use bevy_rapier3d::{control::KinematicCharacterController, dynamics::Velocity};
 
 use crate::{screen::PlayState, AppSet};
 
-use super::spawn::player::CameraPivot;
+use super::{assets::SfxKey, audio::sfx::PlaySfx, spawn::player::CameraPivot};
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.register_type::<MovementController>();
+    app.insert_resource(FootstepTimer(0.0));
+    app.add_systems(Update, update_footstep_timer.in_set(AppSet::TickTimers));
     app.add_systems(
         Update,
         record_movement_controller.in_set(AppSet::RecordInput),
@@ -36,9 +38,13 @@ pub struct MovementController {
     pub jump: bool,
 }
 
+#[derive(Resource)]
+pub struct FootstepTimer(pub f32);
+
 fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut MovementController>,
+    mut footstep_timer: ResMut<FootstepTimer>,
 ) {
     // Collect directional input.
     let mut intent = Vec2::ZERO;
@@ -58,6 +64,10 @@ fn record_movement_controller(
     // Normalize so that diagonal movement has the same speed as
     // horizontal and vertical movement.
     let intent = intent.normalize_or_zero();
+
+    if intent.length() < 0.5 {
+        footstep_timer.0 = 0.0;
+    }
 
     // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
@@ -125,5 +135,18 @@ fn rotate_camera(
             transform.rotate_y(yaw);
             transform.rotate_local_x(pitch);
         }
+    }
+}
+
+fn update_footstep_timer(
+    mut footstep_timer: ResMut<FootstepTimer>,
+    time: Res<Time>,
+    mut commands: Commands,
+) {
+    footstep_timer.0 += time.delta_seconds();
+    // println!("Timer {}", footstep_timer.0);
+    if footstep_timer.0 >= 0.5 {
+        footstep_timer.0 = 0.0;
+        commands.trigger(PlaySfx::RandomStep);
     }
 }
