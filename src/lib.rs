@@ -89,7 +89,15 @@ enum AppSet {
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
-        Camera2dBundle::default(),
+        Camera2dBundle {
+            camera: Camera {
+                order: 2,
+                hdr: true,
+                clear_color: ClearColorConfig::None,
+                ..default()
+            },
+            ..default()
+        },
         // Render all UI to this camera.
         // Not strictly necessary since we only use one camera,
         // but if we don't use this component, our UI will disappear as soon

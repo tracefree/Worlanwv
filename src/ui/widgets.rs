@@ -22,13 +22,15 @@ impl<T: Spawn> Widgets for T {
             Name::new("Button"),
             ButtonBundle {
                 style: Style {
-                    width: Px(200.0),
+                    width: Px(250.0),
                     height: Px(65.0),
+                    // border: UiRect::all(Px(2.0)),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
                 },
-                background_color: BackgroundColor(NODE_BACKGROUND),
+
+                border_color: BorderColor(BUTTON_HOVERED_BACKGROUND),
                 ..default()
             },
             InteractionPalette {
@@ -44,6 +46,7 @@ impl<T: Spawn> Widgets for T {
                     text,
                     TextStyle {
                         font_size: 40.0,
+
                         color: BUTTON_TEXT,
                         ..default()
                     },
@@ -127,10 +130,11 @@ impl Containers for Commands<'_, '_> {
             Name::new("UI Root"),
             NodeBundle {
                 style: Style {
-                    width: Percent(100.0),
-                    height: Percent(100.0),
+                    width: Percent(30.0),
+                    height: Percent(65.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
+                    align_self: AlignSelf::End,
                     flex_direction: FlexDirection::Column,
                     row_gap: Px(10.0),
                     position_type: PositionType::Absolute,
