@@ -15,6 +15,6 @@ fn fragment(
     var color = mix(color_night, color_day, time);
     var sunset = vec3(0.4, 0.2, 0.0);
     color = mix(color, sunset, theta * 0.2 * (1.0 - time));
-    return vec4(color, 1.0);
+    return vec4(color * 30.0, 1.0);
     //return vec4(0.0, 0.0, 1.0, 1.0);
 }

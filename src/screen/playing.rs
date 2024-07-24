@@ -15,16 +15,16 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Playing), enter_playing);
     app.add_systems(OnExit(Screen::Playing), exit_playing);
 
-    app.add_systems(
-        Update,
-        return_to_title_screen
-            .run_if(in_state(Screen::Playing).and_then(input_just_pressed(KeyCode::Escape))),
-    );
+    /*/   app.add_systems(
+    Update,
+    return_to_title_screen
+        .run_if(in_state(Screen::Playing).and_then(input_just_pressed(KeyCode::Escape))),
+        ); */
 }
 
 fn enter_playing(mut commands: Commands, mut windows: Query<&mut Window, With<PrimaryWindow>>) {
     commands.trigger(SpawnLevel);
-    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Gameplay));
+    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::OceanAmbiance));
 
     // Grab cursor
     let mut primary_window = windows.single_mut();

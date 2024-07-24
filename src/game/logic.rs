@@ -1,11 +1,18 @@
 use core::time;
 use std::f32::consts::PI;
 
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 
 use crate::AppSet;
 
-use super::spawn::level::{SkyMaterial, Sun, SunPivot};
+use super::{
+    assets::SfxKey,
+    audio::sfx::PlaySfx,
+    spawn::level::{SkyMaterial, Sun, SunPivot},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
@@ -45,6 +52,7 @@ fn on_cycle_changed(
     trigger: Trigger<CycleChanged>,
     mut current_cycle: ResMut<CurrentCycle>,
     mut colliders: Query<(&mut Transform, &Cycle)>,
+    mut commands: Commands,
 ) {
     current_cycle.0 = trigger.event().0;
     for (mut transform, cycle) in colliders.iter_mut() {
@@ -59,16 +67,33 @@ fn on_cycle_changed(
             transform.translation.y = 0.0;
         }
     }
+    commands.trigger(PlaySfx::Key(SfxKey::CycleChange));
 }
 
 fn handle_input(
     input: Res<ButtonInput<KeyCode>>,
     current_cycle: Res<CurrentCycle>,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
     mut commands: Commands,
 ) {
     if input.just_pressed(KeyCode::ArrowRight) {
         let next_cycle = current_cycle.0.next();
         commands.trigger(CycleChanged(next_cycle));
+    }
+
+    if input.just_pressed(KeyCode::Escape) {
+        // Grab cursor
+        let mut primary_window = windows.single_mut();
+        match primary_window.cursor.grab_mode {
+            CursorGrabMode::None => {
+                primary_window.cursor.grab_mode = CursorGrabMode::Locked;
+                primary_window.cursor.visible = false;
+            }
+            _ => {
+                primary_window.cursor.grab_mode = CursorGrabMode::None;
+                primary_window.cursor.visible = true;
+            }
+        }
     }
 }
 
