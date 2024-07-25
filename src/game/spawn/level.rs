@@ -23,6 +23,7 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level);
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_plugins(MaterialPlugin::<SkyMaterial>::default());
+    app.add_plugins(MaterialPlugin::<WaterMaterial>::default());
     app.add_systems(Update, spawn_colliders);
 }
 
@@ -57,23 +58,36 @@ impl Material for SkyMaterial {
     }
 }
 
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+pub struct WaterMaterial {
+    #[uniform(0)]
+    pub time: f32,
+}
+
+impl Material for WaterMaterial {
+    fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
+        "shaders/water_shader.wgsl".into()
+    }
+
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Blend
+    }
+}
+
 fn spawn_level(
     _trigger: Trigger<SpawnLevel>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut sky_materials: ResMut<Assets<SkyMaterial>>,
+    mut water_materials: ResMut<Assets<WaterMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
     commands.trigger(SpawnPlayer);
 
     // Ocean
-    commands.spawn(PbrBundle {
-        material: materials.add(StandardMaterial {
-            base_color: Color::from(tailwind::BLUE_600),
-            cull_mode: None,
-            ..default()
-        }),
+    commands.spawn(MaterialMeshBundle {
+        material: water_materials.add(WaterMaterial { time: 0.0 }),
         mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
         ..default()
     });

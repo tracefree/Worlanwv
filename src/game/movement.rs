@@ -178,7 +178,7 @@ fn update_footstep_timer(
     mut commands: Commands,
 ) {
     footstep_timer.0 += time.delta_seconds();
-    if footstep_timer.0 >= 0.5 {
+    if footstep_timer.0 >= 0.45 {
         footstep_timer.0 = 0.0;
         commands.trigger(Footstep);
     }

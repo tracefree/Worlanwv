@@ -20,7 +20,7 @@ use super::{
     assets::SfxKey,
     audio::sfx::PlaySfx,
     spawn::{
-        level::{SkyMaterial, Sun, SunPivot, Terrain},
+        level::{SkyMaterial, Sun, SunPivot, Terrain, WaterMaterial},
         player::Player,
     },
 };
@@ -32,9 +32,9 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(cast_ground_ray);
     app.add_systems(
         Update,
-        animate_sun
-            .run_if(in_state(PlayState::InGame))
-            .in_set(AppSet::Update),
+        (animate_sun, animate_water)
+            .in_set(AppSet::TickTimers)
+            .run_if(in_state(PlayState::InGame)),
     );
     app.add_systems(
         FixedUpdate,
@@ -125,6 +125,18 @@ fn animate_sun(
     for material in sky_materials.iter() {
         if let Some(sky) = mats.get_mut(material) {
             sky.time = brightness_factor;
+        }
+    }
+}
+
+fn animate_water(
+    water_materials: Query<&Handle<WaterMaterial>>,
+    mut mats: ResMut<Assets<WaterMaterial>>,
+    time: Res<Time>,
+) {
+    for material in water_materials.iter() {
+        if let Some(water) = mats.get_mut(material) {
+            water.time = time.elapsed_seconds();
         }
     }
 }
