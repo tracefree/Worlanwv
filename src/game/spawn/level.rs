@@ -33,6 +33,9 @@ pub struct SpawnLevel;
 pub struct Terrain;
 
 #[derive(Component)]
+struct StuckInGeometry(Vec3);
+
+#[derive(Component)]
 pub struct SunPivot;
 
 #[derive(Component)]
@@ -62,8 +65,6 @@ fn spawn_level(
     mut sky_materials: ResMut<Assets<SkyMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    // The only thing we have in our level is a player,
-    // but add things like walls etc. here.
     commands.trigger(SpawnPlayer);
 
     // Ocean

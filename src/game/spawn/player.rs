@@ -53,9 +53,8 @@ fn spawn_player(
                 transform: Transform::from_xyz(0.0, 10.0, 0.0),
                 ..default()
             },
-            RigidBody::KinematicVelocityBased,
-            //    Sensor,
-            //    Ccd::enabled(),
+            RigidBody::KinematicPositionBased,
+            Sensor,
             KinematicCharacterController {
                 custom_mass: Some(5.0),
                 up: Vec3::Y,
@@ -66,9 +65,7 @@ fn spawn_player(
                     min_width: CharacterLength::Relative(0.5),
                     include_dynamic_bodies: false,
                 }),
-                // Don’t allow climbing slopes larger than 45 degrees.
                 max_slope_climb_angle: 45.0_f32.to_radians(),
-                // Automatically slide down on slopes smaller than 30 degrees.
                 min_slope_slide_angle: 30.0_f32.to_radians(),
                 apply_impulse_to_dynamic_bodies: true,
                 snap_to_ground: Some(CharacterLength::Absolute(0.2)),

@@ -5,7 +5,10 @@ use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
-use bevy_rapier3d::{plugin::RapierContext, prelude::QueryFilter};
+use bevy_rapier3d::{
+    plugin::RapierContext,
+    prelude::{ColliderDisabled, QueryFilter},
+};
 
 use crate::{
     game::audio::sfx::GroundMaterial,
@@ -32,6 +35,12 @@ pub(super) fn plugin(app: &mut App) {
         animate_sun
             .run_if(in_state(PlayState::InGame))
             .in_set(AppSet::Update),
+    );
+    app.add_systems(
+        FixedUpdate,
+        (reenable_colliders, disable_intersecting_colliders)
+            .chain()
+            .run_if(in_state(PlayState::InGame)),
     );
     app.add_systems(OnEnter(PlayState::InMenu), animate_sun);
 }
@@ -150,57 +159,31 @@ fn cast_ground_ray(
     )
 }
 
-fn prevent_collider_overlap(
+fn disable_intersecting_colliders(
     rapier_context: Res<RapierContext>,
     mut player: Query<Entity, With<Player>>,
     mut commands: Commands,
 ) {
-    /* Find the intersection pair, if it exists, between two colliders. */
     let player = player.single_mut();
-    for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {
+    for (_, entity, intersecting) in rapier_context.intersection_pairs_with(player) {
         if intersecting {
-            continue;
-            /*
-            if collider == terrain.single() {
-                transform.translation += Vec3::new(0.0, 0.1, 0.0);
-            } else {
-                let back = transform.local_z() * 0.1;
-                transform.translation += back;
-            }
-            velocity.linvel = Vec3::ZERO;
-            */
+            commands.entity(entity).insert(ColliderDisabled);
         }
     }
-    /*
-    let mut overlap = false;
-    for contact_pair in rapier_context.contact_pairs_with(player) {
-        if let Some((manifold, contact)) = contact_pair.find_deepest_contact() {
-            overlap = true;
-            if contact_pair.collider2() == terrain.single() {
-                //    rapier_context.move_shape(Vec3::Y * 0.3, contact_pair.collider1(), transform.translation(), transform.ro, shape_mass, options, filter, events)
-                transform.translation.y += contact.dist();
-                velocity.linvel = Vec3::ZERO;
-                continue;
-            }
+}
 
-            if let Some(normal) = stuck {
-                transform.translation += normal.0 * contact.dist();
-                velocity.linvel = Vec3::ZERO;
-            } else {
-                println!("{:?}", manifold.normal());
-                let push_vector = Vec3::new(
-                    -manifold.normal().x,
-                    manifold.normal().y.abs(),
-                    -manifold.normal().z,
-                );
-                //   commands.entity(player).insert(StuckInGeometry(push_vector));
-            }
+// TODO: Custom Schedule instead of local timer?
+fn reenable_colliders(
+    mut commands: Commands,
+    disabled_colliders: Query<Entity, With<ColliderDisabled>>,
+    mut timer: Local<f32>,
+    time: Res<Time>,
+) {
+    *timer -= time.delta_seconds();
+    if *timer <= 0.0 {
+        *timer = 0.5;
+        for collider in disabled_colliders.iter() {
+            commands.entity(collider).remove::<ColliderDisabled>();
         }
     }
-    if stuck.is_some() && !overlap {
-        println!("No oberlap");
-        velocity.linvel = Vec3::ZERO;
-        //   commands.entity(player).remove::<StuckInGeometry>();
-    }
-    */
 }
