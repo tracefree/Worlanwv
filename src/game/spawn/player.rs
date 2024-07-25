@@ -4,6 +4,7 @@ use bevy::{
     core_pipeline::{
         bloom::{BloomPlugin, BloomSettings},
         experimental::taa::TemporalAntiAliasBundle,
+        prepass::DepthPrepass,
     },
     pbr::{ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionSettings},
     prelude::*,
@@ -93,11 +94,13 @@ fn spawn_player(
                             transform: Transform::from_xyz(0.0, 0.0, 0.0),
                             projection: PerspectiveProjection {
                                 fov: 70.0_f32.to_radians(),
+                                near: 0.25,
                                 ..default()
                             }
                             .into(),
                             ..default()
                         })
+                        .insert(DepthPrepass)
                         .insert(ScreenSpaceAmbientOcclusionBundle {
                             settings: ScreenSpaceAmbientOcclusionSettings {
                                 quality_level:

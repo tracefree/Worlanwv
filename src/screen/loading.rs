@@ -41,7 +41,7 @@ fn enter_loading(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ImageBundle {
                         style: Style {
                             margin: UiRect::all(Val::Auto),
-                            width: Val::Percent(70.0),
+                            width: Val::Percent(30.0),
                             ..default()
                         },
                         image: UiImage::new(asset_server.load_with_settings(
