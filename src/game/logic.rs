@@ -5,8 +5,10 @@ use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
+use bevy_rapier3d::{plugin::RapierContext, prelude::QueryFilter};
 
 use crate::{
+    game::audio::sfx::GroundMaterial,
     screen::{PlayState, Screen},
     AppSet,
 };
@@ -14,13 +16,17 @@ use crate::{
 use super::{
     assets::SfxKey,
     audio::sfx::PlaySfx,
-    spawn::level::{SkyMaterial, Sun, SunPivot},
+    spawn::{
+        level::{SkyMaterial, Sun, SunPivot, Terrain},
+        player::Player,
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
         .insert_resource(DayProgress(0.0));
     app.observe(on_cycle_changed);
+    app.observe(cast_ground_ray);
     app.add_systems(
         Update,
         animate_sun
@@ -52,6 +58,9 @@ pub struct CurrentCycle(pub Cycle);
 
 #[derive(Event)]
 pub struct CycleChanged(pub Cycle);
+
+#[derive(Event)]
+pub struct Footstep;
 
 #[derive(Resource)]
 pub struct DayProgress(f32);
@@ -109,4 +118,89 @@ fn animate_sun(
             sky.time = brightness_factor;
         }
     }
+}
+
+fn cast_ground_ray(
+    _trigger: Trigger<Footstep>,
+    rapier_context: Res<RapierContext>,
+    player: Query<(Entity, &Transform), With<Player>>,
+    terrain: Query<Entity, With<Terrain>>,
+    mut commands: Commands,
+) {
+    let (player, transform) = player.single();
+    rapier_context.intersections_with_ray(
+        transform.translation + Vec3::NEG_Y * 0.75,
+        Vec3::NEG_Y,
+        0.5,
+        false,
+        QueryFilter::default(),
+        |entity, _| {
+            if entity == player {
+                // Keep searching
+                return true;
+            } else if entity == terrain.single() {
+                // Hit grassy terrain
+                commands.trigger(PlaySfx::RandomStep(GroundMaterial::Grass));
+                return false;
+            }
+            // Treat every other surface as solid
+            commands.trigger(PlaySfx::RandomStep(GroundMaterial::Solid));
+            return false;
+        },
+    )
+}
+
+fn prevent_collider_overlap(
+    rapier_context: Res<RapierContext>,
+    mut player: Query<Entity, With<Player>>,
+    mut commands: Commands,
+) {
+    /* Find the intersection pair, if it exists, between two colliders. */
+    let player = player.single_mut();
+    for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {
+        if intersecting {
+            continue;
+            /*
+            if collider == terrain.single() {
+                transform.translation += Vec3::new(0.0, 0.1, 0.0);
+            } else {
+                let back = transform.local_z() * 0.1;
+                transform.translation += back;
+            }
+            velocity.linvel = Vec3::ZERO;
+            */
+        }
+    }
+    /*
+    let mut overlap = false;
+    for contact_pair in rapier_context.contact_pairs_with(player) {
+        if let Some((manifold, contact)) = contact_pair.find_deepest_contact() {
+            overlap = true;
+            if contact_pair.collider2() == terrain.single() {
+                //    rapier_context.move_shape(Vec3::Y * 0.3, contact_pair.collider1(), transform.translation(), transform.ro, shape_mass, options, filter, events)
+                transform.translation.y += contact.dist();
+                velocity.linvel = Vec3::ZERO;
+                continue;
+            }
+
+            if let Some(normal) = stuck {
+                transform.translation += normal.0 * contact.dist();
+                velocity.linvel = Vec3::ZERO;
+            } else {
+                println!("{:?}", manifold.normal());
+                let push_vector = Vec3::new(
+                    -manifold.normal().x,
+                    manifold.normal().y.abs(),
+                    -manifold.normal().z,
+                );
+                //   commands.entity(player).insert(StuckInGeometry(push_vector));
+            }
+        }
+    }
+    if stuck.is_some() && !overlap {
+        println!("No oberlap");
+        velocity.linvel = Vec3::ZERO;
+        //   commands.entity(player).remove::<StuckInGeometry>();
+    }
+    */
 }

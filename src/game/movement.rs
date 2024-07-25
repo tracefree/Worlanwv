@@ -19,7 +19,12 @@ use crate::{
     AppSet,
 };
 
-use super::{assets::SfxKey, audio::sfx::PlaySfx, spawn::player::CameraPivot};
+use super::{
+    assets::SfxKey,
+    audio::sfx::{GroundMaterial, PlaySfx},
+    logic::Footstep,
+    spawn::player::CameraPivot,
+};
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
@@ -126,7 +131,7 @@ fn apply_movement(
 
             // Just landed
             if *prev_in_air {
-                commands.trigger(PlaySfx::RandomStep);
+                commands.trigger(Footstep);
             }
         }
 
@@ -137,7 +142,7 @@ fn apply_movement(
             if controller.jump {
                 *vertical_movement = 4.0;
                 *grounded_timer = 0.0;
-                commands.trigger(PlaySfx::RandomStep);
+                commands.trigger(Footstep);
             }
         }
 
@@ -175,6 +180,6 @@ fn update_footstep_timer(
     footstep_timer.0 += time.delta_seconds();
     if footstep_timer.0 >= 0.5 {
         footstep_timer.0 = 0.0;
-        commands.trigger(PlaySfx::RandomStep);
+        commands.trigger(Footstep);
     }
 }

@@ -48,6 +48,10 @@ pub enum SfxKey {
     GrassStep2,
     GrassStep3,
     GrassStep4,
+    HardStep1,
+    HardStep2,
+    HardStep3,
+    HardStep4,
     CycleChange,
 }
 
@@ -82,6 +86,22 @@ impl FromWorld for HandleMap<SfxKey> {
             (
                 SfxKey::GrassStep4,
                 asset_server.load("audio/sfx/footsteps/grass_4.wav"),
+            ),
+            (
+                SfxKey::HardStep1,
+                asset_server.load("audio/sfx/footsteps/hard_1.wav"),
+            ),
+            (
+                SfxKey::HardStep2,
+                asset_server.load("audio/sfx/footsteps/hard_2.wav"),
+            ),
+            (
+                SfxKey::HardStep3,
+                asset_server.load("audio/sfx/footsteps/hard_3.wav"),
+            ),
+            (
+                SfxKey::HardStep4,
+                asset_server.load("audio/sfx/footsteps/hard_4.wav"),
             ),
             (
                 SfxKey::CycleChange,

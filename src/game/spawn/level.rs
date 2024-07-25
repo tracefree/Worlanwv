@@ -24,22 +24,13 @@ pub(super) fn plugin(app: &mut App) {
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_plugins(MaterialPlugin::<SkyMaterial>::default());
     app.add_systems(Update, spawn_colliders);
-    /*
-    app.add_systems(
-        FixedUpdate,
-        prevent_collider_overlap.run_if(in_state(PlayState::InGame)),
-    );
-    */
 }
 
 #[derive(Event, Debug)]
 pub struct SpawnLevel;
 
 #[derive(Component)]
-struct Terrain;
-
-#[derive(Component)]
-struct StuckInGeometry(Vec3);
+pub struct Terrain;
 
 #[derive(Component)]
 pub struct SunPivot;
@@ -174,69 +165,5 @@ fn spawn_colliders(
         if name.as_str().contains("terrain") {
             commands.entity(entity).insert(Terrain);
         }
-    }
-}
-
-fn prevent_collider_overlap(
-    rapier_context: Res<RapierContext>,
-    mut player: Query<
-        (
-            Entity,
-            &mut Transform,
-            &mut Velocity,
-            Option<&StuckInGeometry>,
-        ),
-        With<Player>,
-    >,
-    terrain: Query<Entity, With<Terrain>>,
-    mut commands: Commands,
-) {
-    println!("DBNA");
-    /* Find the intersection pair, if it exists, between two colliders. */
-    let (player, mut transform, mut velocity, stuck) = player.single_mut();
-    for (_, _, intersecting) in rapier_context.intersection_pairs_with(player) {
-        if intersecting {
-            continue;
-            /*
-            if collider == terrain.single() {
-                transform.translation += Vec3::new(0.0, 0.1, 0.0);
-            } else {
-                let back = transform.local_z() * 0.1;
-                transform.translation += back;
-            }
-            velocity.linvel = Vec3::ZERO;
-            */
-        }
-    }
-
-    let mut overlap = false;
-    for contact_pair in rapier_context.contact_pairs_with(player) {
-        if let Some((manifold, contact)) = contact_pair.find_deepest_contact() {
-            overlap = true;
-            if contact_pair.collider2() == terrain.single() {
-                //    rapier_context.move_shape(Vec3::Y * 0.3, contact_pair.collider1(), transform.translation(), transform.ro, shape_mass, options, filter, events)
-                transform.translation.y += contact.dist();
-                velocity.linvel = Vec3::ZERO;
-                continue;
-            }
-
-            if let Some(normal) = stuck {
-                transform.translation += normal.0 * contact.dist();
-                velocity.linvel = Vec3::ZERO;
-            } else {
-                println!("{:?}", manifold.normal());
-                let push_vector = Vec3::new(
-                    -manifold.normal().x,
-                    manifold.normal().y.abs(),
-                    -manifold.normal().z,
-                );
-                commands.entity(player).insert(StuckInGeometry(push_vector));
-            }
-        }
-    }
-    if stuck.is_some() && !overlap {
-        println!("No oberlap");
-        velocity.linvel = Vec3::ZERO;
-        commands.entity(player).remove::<StuckInGeometry>();
     }
 }
