@@ -32,7 +32,7 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(cast_ground_ray);
     app.add_systems(
         Update,
-        (animate_sun, animate_water)
+        (animate_sun, animate_water, handle_interaction)
             .in_set(AppSet::TickTimers)
             .run_if(in_state(PlayState::InGame)),
     );
@@ -76,6 +76,9 @@ pub struct Footstep;
 
 #[derive(Resource)]
 pub struct DayProgress(f32);
+
+#[derive(Component)]
+pub struct Highlighted;
 
 fn on_cycle_changed(
     trigger: Trigger<CycleChanged>,
@@ -177,12 +180,13 @@ fn cast_ground_ray(
 fn check_for_interactables(
     rapier_context: Res<RapierContext>,
     player: Query<Entity, With<Player>>,
-    camera: Query<(&Transform, &GlobalTransform), With<PlayerCamera>>,
+    camera: Query<&GlobalTransform, With<PlayerCamera>>,
+    mut commands: Commands,
 ) {
-    let (local, global) = camera.single();
+    let (_, rotation, translation) = camera.single().to_scale_rotation_translation();
     rapier_context.intersections_with_ray(
-        global.translation(),
-        -local.local_z().as_vec3(),
+        translation,
+        rotation * Vec3::NEG_Z,
         1.0,
         false,
         QueryFilter::default(),
@@ -192,9 +196,10 @@ fn check_for_interactables(
                 return true;
             }
             println!("Looking at {:?}", entity);
+            commands.entity(entity).insert(Highlighted);
             return false;
         },
-    )
+    );
 }
 
 fn disable_intersecting_colliders(
@@ -222,6 +227,19 @@ fn reenable_colliders(
         *timer = 0.5;
         for collider in disabled_colliders.iter() {
             commands.entity(collider).remove::<ColliderDisabled>();
+        }
+    }
+}
+
+fn handle_interaction(
+    input: Res<ButtonInput<KeyCode>>,
+    highlighted_objects: Query<Entity, With<Highlighted>>,
+    mut commands: Commands,
+) {
+    for object in highlighted_objects.iter() {
+        if input.just_pressed(KeyCode::KeyE) {
+            println!("Interacted");
+            commands.entity(object).despawn();
         }
     }
 }

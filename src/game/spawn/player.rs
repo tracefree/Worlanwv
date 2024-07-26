@@ -68,7 +68,7 @@ fn spawn_player(
                     include_dynamic_bodies: false,
                 }),
                 max_slope_climb_angle: 45.0_f32.to_radians(),
-                min_slope_slide_angle: 30.0_f32.to_radians(),
+                min_slope_slide_angle: 45.0_f32.to_radians(),
                 apply_impulse_to_dynamic_bodies: true,
                 snap_to_ground: Some(CharacterLength::Absolute(0.2)),
                 ..default()

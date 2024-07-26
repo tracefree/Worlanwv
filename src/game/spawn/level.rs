@@ -63,10 +63,6 @@ impl Material for SkyMaterial {
     fn fragment_shader() -> ShaderRef {
         "shaders/sky_shader_frag.wgsl".into()
     }
-
-    fn alpha_mode(&self) -> AlphaMode {
-        AlphaMode::Opaque
-    }
 }
 
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
