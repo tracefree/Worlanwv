@@ -33,7 +33,7 @@ fn fragment(
    // var factor = sin((vertex.uv * 1000.0) + time);
 
     var depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);
-    let foam_factor = step(0.6, abs(position_world_to_view(vertex.world_position.xyz).z - depth_ndc_to_view_z(depth)));
+    let foam_factor = smoothstep(0.5, 1.0, abs(position_world_to_view(vertex.world_position.xyz).z - depth_ndc_to_view_z(depth)));
     var color = mix(color_foam, color_blue, foam_factor);
     return vec4(color, fresnel(normal, view, 1.0));
 }
