@@ -18,7 +18,10 @@ use bevy_rapier3d::{
     prelude::{ActiveCollisionTypes, GravityScale, Velocity},
 };
 
-use crate::{game::logic::Cycle, screen::PlayState};
+use crate::{
+    game::logic::{on_hourglass_taken, Cycle, Interactable},
+    screen::PlayState,
+};
 
 use super::player::{Player, SpawnPlayer};
 
@@ -120,15 +123,19 @@ fn spawn_level(
             transform: Transform::from_xyz(0.0, -200.0, 0.0),
             ..default()
         })
-        .insert(Cycle::Two);
-
-    commands
-        .spawn(SceneBundle {
-            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/hourglass.glb")),
-            transform: Transform::from_xyz(1.0, 8.7, 1.0),
-            ..default()
-        })
-        .insert(Collider::ball(0.5));
+        .insert(Cycle::Two)
+        .with_children(|scene| {
+            scene
+                .spawn(SceneBundle {
+                    scene: asset_server
+                        .load(GltfAssetLabel::Scene(0).from_asset("models/hourglass.glb")),
+                    transform: Transform::from_xyz(1.0, 8.7, 1.0),
+                    ..default()
+                })
+                .insert(Interactable::new("Take".into()))
+                .insert(Collider::ball(0.15))
+                .observe(on_hourglass_taken);
+        });
 
     // Comet
     commands.spawn(SceneBundle {
@@ -188,10 +195,22 @@ fn spawn_level(
 
 fn spawn_colliders(
     mut commands: Commands,
+    q_children: Query<&Children>,
+    mut interactables: Query<(Entity, &mut Interactable)>,
     scene_objects: Query<(Entity, &Name, &Handle<Mesh>), Added<Name>>,
     meshes: ResMut<Assets<Mesh>>,
 ) {
     for (entity, name, mesh) in scene_objects.iter() {
+        if name.as_str().contains("highlight") {
+            for (scene_entity, mut interactable) in interactables.iter_mut() {
+                for descendent in q_children.iter_descendants(scene_entity) {
+                    if descendent != entity {
+                        continue;
+                    }
+                    interactable.highlight_mesh = Some(entity);
+                }
+            }
+        }
         if !name.as_str().contains("_col") {
             continue;
         }

@@ -13,10 +13,7 @@ use bevy::{
     prelude::*,
     window::WindowResolution,
 };
-use bevy_rapier3d::{
-    plugin::{NoUserData, RapierPhysicsPlugin},
-    render::RapierDebugRenderPlugin,
-};
+use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 
 pub struct AppPlugin;
 
@@ -44,7 +41,7 @@ impl Plugin for AppPlugin {
                 .set(WindowPlugin {
                     primary_window: Window {
                         title: "Worlanwv".to_string(),
-                        resolution: WindowResolution::new(1920.0, 1080.0),
+                        resolution: WindowResolution::new(1280.0, 720.0),
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
@@ -63,7 +60,6 @@ impl Plugin for AppPlugin {
 
         // Add other plugins.
         app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
-        // app.add_plugins(RapierDebugRenderPlugin::default());
         app.add_plugins(TemporalAntiAliasPlugin);
         app.add_plugins((game::plugin, screen::plugin, ui::plugin));
 

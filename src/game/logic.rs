@@ -27,9 +27,11 @@ use super::{
 
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
-        .insert_resource(DayProgress(0.0));
+        .insert_resource(DayProgress(0.0))
+        .insert_resource(CurrentHighlighted(None));
     app.observe(on_cycle_changed);
     app.observe(cast_ground_ray);
+    app.register_type::<Interactable>();
     app.add_systems(
         Update,
         (animate_sun, animate_water, handle_interaction)
@@ -42,6 +44,7 @@ pub(super) fn plugin(app: &mut App) {
             reenable_colliders,
             disable_intersecting_colliders,
             check_for_interactables,
+            update_highlight_mesh.after(check_for_interactables),
         )
             .run_if(in_state(PlayState::InGame)),
     );
@@ -77,8 +80,32 @@ pub struct Footstep;
 #[derive(Resource)]
 pub struct DayProgress(f32);
 
-#[derive(Component)]
-pub struct Highlighted;
+#[derive(Event)]
+pub struct HighlightChanged {
+    pub from: Option<Entity>,
+    pub to: Option<Entity>,
+}
+
+#[derive(Resource)]
+pub struct CurrentHighlighted(pub Option<Entity>);
+
+#[derive(Component, Reflect)]
+pub struct Interactable {
+    pub highlight_mesh: Option<Entity>,
+    pub text: String,
+}
+
+impl Interactable {
+    pub fn new(text: String) -> Self {
+        Self {
+            highlight_mesh: None,
+            text,
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct Interacted;
 
 fn on_cycle_changed(
     trigger: Trigger<CycleChanged>,
@@ -179,27 +206,36 @@ fn cast_ground_ray(
 
 fn check_for_interactables(
     rapier_context: Res<RapierContext>,
-    player: Query<Entity, With<Player>>,
     camera: Query<&GlobalTransform, With<PlayerCamera>>,
+    mut highlighted: ResMut<CurrentHighlighted>,
     mut commands: Commands,
 ) {
     let (_, rotation, translation) = camera.single().to_scale_rotation_translation();
-    rapier_context.intersections_with_ray(
-        translation,
+    let result = rapier_context.cast_ray(
+        translation + rotation * Vec3::NEG_Z * 0.35,
         rotation * Vec3::NEG_Z,
         1.0,
         false,
         QueryFilter::default(),
-        |entity, _| {
-            if entity == player.single() {
-                // Keep searching
-                return true;
-            }
-            println!("Looking at {:?}", entity);
-            commands.entity(entity).insert(Highlighted);
-            return false;
-        },
     );
+
+    if let Some((object, _)) = result {
+        if highlighted.0.is_none() {
+            commands.trigger(HighlightChanged {
+                from: highlighted.0,
+                to: Some(object),
+            });
+            highlighted.0 = Some(object);
+        }
+    } else {
+        if highlighted.0.is_some() {
+            commands.trigger(HighlightChanged {
+                from: highlighted.0,
+                to: None,
+            });
+        }
+        highlighted.0 = None;
+    }
 }
 
 fn disable_intersecting_colliders(
@@ -233,13 +269,47 @@ fn reenable_colliders(
 
 fn handle_interaction(
     input: Res<ButtonInput<KeyCode>>,
-    highlighted_objects: Query<Entity, With<Highlighted>>,
+    current_highlighted: Res<CurrentHighlighted>,
+    interactables: Query<Entity, With<Interactable>>,
     mut commands: Commands,
 ) {
-    for object in highlighted_objects.iter() {
-        if input.just_pressed(KeyCode::KeyE) {
-            println!("Interacted");
-            commands.entity(object).despawn();
+    for object in interactables.iter() {
+        if current_highlighted.0 == Some(object) && input.just_pressed(KeyCode::KeyE) {
+            commands.trigger_targets(Interacted, object);
         }
     }
+}
+
+/*
+fn on_highlighted(trigger: Trigger<HighlightChanged>) {
+    if let Some(previous) = trigger.event().from {
+        println!("Lost highlight on {:?}", previous);
+    }
+    if let Some(new) = trigger.event().to {
+        println!("Highlighted {:?}", new);
+    }
+}
+*/
+
+fn update_highlight_mesh(
+    highlited: Res<CurrentHighlighted>,
+    interactables: Query<(Entity, &Interactable)>,
+    mut commands: Commands,
+) {
+    for (entity, interactable) in interactables.iter() {
+        if let Some(highlight_mesh) = interactable.highlight_mesh {
+            if highlited.0 == Some(entity) {
+                commands.entity(highlight_mesh).insert(Visibility::Visible);
+            } else {
+                commands.entity(highlight_mesh).insert(Visibility::Hidden);
+            }
+        }
+    }
+}
+
+// Content specific logic
+
+pub fn on_hourglass_taken(trigger: Trigger<Interacted>, mut commands: Commands) {
+    println!("Hourglass!");
+    commands.entity(trigger.entity()).despawn();
 }

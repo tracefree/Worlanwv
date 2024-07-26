@@ -95,7 +95,7 @@ fn spawn_player(
                             transform: Transform::from_xyz(0.0, 0.0, 0.0),
                             projection: PerspectiveProjection {
                                 fov: 70.0_f32.to_radians(),
-                                near: 0.25,
+                                near: 0.1,
                                 ..default()
                             }
                             .into(),
