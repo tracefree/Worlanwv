@@ -28,7 +28,8 @@ use super::{
 pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
         .insert_resource(DayProgress(0.0))
-        .insert_resource(CurrentHighlighted(None));
+        .insert_resource(CurrentHighlighted(None))
+        .insert_resource(Inventory::default());
     app.observe(on_cycle_changed);
     app.observe(cast_ground_ray);
     app.register_type::<Interactable>();
@@ -95,6 +96,12 @@ pub struct Interactable {
     pub text: String,
 }
 
+#[derive(Resource, Default)]
+pub struct Inventory {
+    hourglass: bool,
+    sapling: bool,
+}
+
 impl Interactable {
     pub fn new(text: String) -> Self {
         Self {
@@ -138,9 +145,15 @@ fn animate_sun(
     mut mats: ResMut<Assets<SkyMaterial>>,
     current_cycle: Res<CurrentCycle>,
     time: Res<Time>,
+    input: Res<ButtonInput<KeyCode>>,
+    inventory: Res<Inventory>,
     mut commands: Commands,
 ) {
-    day_progress.0 += time.delta_seconds() / 30.0;
+    let time_modifier = match inventory.hourglass && input.pressed(KeyCode::KeyQ) {
+        false => 1.0,
+        true => 15.0,
+    };
+    day_progress.0 += time.delta_seconds() * time_modifier / 30.0;
     if day_progress.0 >= 1.0 {
         day_progress.0 -= 1.0;
         let next_cycle = current_cycle.0.next();
@@ -309,7 +322,12 @@ fn update_highlight_mesh(
 
 // Content specific logic
 
-pub fn on_hourglass_taken(trigger: Trigger<Interacted>, mut commands: Commands) {
+pub fn on_hourglass_taken(
+    trigger: Trigger<Interacted>,
+    mut inventory: ResMut<Inventory>,
+    mut commands: Commands,
+) {
     println!("Hourglass!");
+    inventory.hourglass = true;
     commands.entity(trigger.entity()).despawn();
 }
