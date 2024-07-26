@@ -4,9 +4,12 @@ use std::f32::consts::PI;
 
 use bevy::{
     color::palettes::tailwind,
-    pbr::NotShadowCaster,
+    pbr::{DrawPrepass, NotShadowCaster},
     prelude::*,
-    render::{render_resource::AsBindGroup, view::NoFrustumCulling},
+    render::{
+        render_resource::{AsBindGroup, ShaderRef},
+        view::NoFrustumCulling,
+    },
 };
 use bevy_rapier3d::{
     dynamics::RigidBody,
@@ -22,7 +25,11 @@ use super::player::{Player, SpawnPlayer};
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level);
     // TODO: Do this once after loading geometry, don't check every frame
-    app.add_plugins(MaterialPlugin::<SkyMaterial>::default());
+    app.add_plugins(MaterialPlugin::<SkyMaterial> {
+        prepass_enabled: false,
+        shadows_enabled: false,
+        ..default()
+    });
     app.add_plugins(MaterialPlugin::<WaterMaterial>::default());
     app.add_systems(Update, spawn_colliders);
 }
@@ -49,7 +56,15 @@ pub struct SkyMaterial {
 }
 
 impl Material for SkyMaterial {
-    fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
+    fn vertex_shader() -> ShaderRef {
+        "shaders/sky_vert.wgsl".into()
+    }
+
+    /*  fn prepass_fragment_shader() -> ShaderRef {
+    "shaders/sky_shader_prepass_frag.wgsl".into()
+    } */
+
+    fn fragment_shader() -> ShaderRef {
         "shaders/sky_shader.wgsl".into()
     }
 
@@ -115,6 +130,17 @@ fn spawn_level(
         })
         .insert(Cycle::Two);
 
+    // Comet
+    commands.spawn(SceneBundle {
+        scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
+        transform: Transform {
+            translation: Vec3::new(0.0, 200.0, 400.0),
+            rotation: Quat::from_euler(EulerRot::YXZ, PI, 0.0, -PI / 8.0),
+            scale: Vec3::new(2.0, 2.0, 2.0),
+        },
+        ..default()
+    });
+
     // Lights
     // Sun
     commands
@@ -152,11 +178,12 @@ fn spawn_level(
     // Skybox
     commands
         .spawn(MaterialMeshBundle {
-            mesh: meshes.add(Cuboid::new(2500.0, 2500.0, 2500.0)),
-            material: sky_materials.add(SkyMaterial { time: 0.0 }),
-            transform: Transform::from_scale(Vec3::new(-1.0, -1.0, -1.0)),
+            mesh: meshes.add(Cuboid::default()),
+            material: materials.add(Color::WHITE), //sky_materials.add(SkyMaterial { time: 0.0 }),
+            transform: Transform::from_scale(Vec3::ONE * (-2500.0)),
             ..default()
         })
+        .insert(NoFrustumCulling)
         .insert(NotShadowCaster);
 }
 
@@ -166,6 +193,7 @@ fn spawn_colliders(
     meshes: ResMut<Assets<Mesh>>,
 ) {
     for (entity, name, mesh) in scene_objects.iter() {
+        commands.entity(entity).insert(NoFrustumCulling);
         if !name.as_str().contains("_col") {
             continue;
         }

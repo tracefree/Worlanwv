@@ -1,8 +1,16 @@
-#import bevy_pbr::forward_io::VertexOutput
 #import bevy_pbr::mesh_functions::mesh_position_clip_to_local
+#import bevy_pbr::{
+    mesh_bindings::mesh,
+    mesh_functions,
+    skinning,
+    morph::morph,
+    forward_io::{Vertex, VertexOutput},
+    view_transformations::position_world_to_clip,
+}
 
 
 @group(2) @binding(0) var<uniform> time: f32;
+
 
 @fragment
 fn fragment(

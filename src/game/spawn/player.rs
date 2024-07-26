@@ -8,6 +8,7 @@ use bevy::{
     },
     pbr::{ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionSettings},
     prelude::*,
+    render::view::NoFrustumCulling,
 };
 use bevy_rapier3d::{
     control::KinematicCharacterController,
