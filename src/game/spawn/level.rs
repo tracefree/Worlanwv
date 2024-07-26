@@ -57,19 +57,15 @@ pub struct SkyMaterial {
 
 impl Material for SkyMaterial {
     fn vertex_shader() -> ShaderRef {
-        "shaders/sky_vert.wgsl".into()
+        "shaders/sky_shader_vert.wgsl".into()
     }
 
-    /*  fn prepass_fragment_shader() -> ShaderRef {
-    "shaders/sky_shader_prepass_frag.wgsl".into()
-    } */
-
     fn fragment_shader() -> ShaderRef {
-        "shaders/sky_shader.wgsl".into()
+        "shaders/sky_shader_frag.wgsl".into()
     }
 
     fn alpha_mode(&self) -> AlphaMode {
-        AlphaMode::Blend
+        AlphaMode::Opaque
     }
 }
 
@@ -179,8 +175,7 @@ fn spawn_level(
     commands
         .spawn(MaterialMeshBundle {
             mesh: meshes.add(Cuboid::default()),
-            material: materials.add(Color::WHITE), //sky_materials.add(SkyMaterial { time: 0.0 }),
-            transform: Transform::from_scale(Vec3::ONE * (-2500.0)),
+            material: sky_materials.add(SkyMaterial { time: 0.0 }),
             ..default()
         })
         .insert(NoFrustumCulling)
