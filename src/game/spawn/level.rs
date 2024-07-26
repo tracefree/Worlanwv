@@ -126,6 +126,14 @@ fn spawn_level(
         })
         .insert(Cycle::Two);
 
+    commands
+        .spawn(SceneBundle {
+            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/hourglass.glb")),
+            transform: Transform::from_xyz(1.0, 8.7, 1.0),
+            ..default()
+        })
+        .insert(Collider::ball(0.5));
+
     // Comet
     commands.spawn(SceneBundle {
         scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
@@ -188,7 +196,6 @@ fn spawn_colliders(
     meshes: ResMut<Assets<Mesh>>,
 ) {
     for (entity, name, mesh) in scene_objects.iter() {
-        commands.entity(entity).insert(NoFrustumCulling);
         if !name.as_str().contains("_col") {
             continue;
         }

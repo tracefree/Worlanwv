@@ -21,7 +21,7 @@ use super::{
     audio::sfx::PlaySfx,
     spawn::{
         level::{SkyMaterial, Sun, SunPivot, Terrain, WaterMaterial},
-        player::Player,
+        player::{Player, PlayerCamera},
     },
 };
 
@@ -38,8 +38,11 @@ pub(super) fn plugin(app: &mut App) {
     );
     app.add_systems(
         FixedUpdate,
-        (reenable_colliders, disable_intersecting_colliders)
-            .chain()
+        (
+            reenable_colliders,
+            disable_intersecting_colliders,
+            check_for_interactables,
+        )
             .run_if(in_state(PlayState::InGame)),
     );
     app.add_systems(OnEnter(PlayState::InMenu), animate_sun);
@@ -166,6 +169,29 @@ fn cast_ground_ray(
             }
             // Treat every other surface as solid
             commands.trigger(PlaySfx::RandomStep(GroundMaterial::Solid));
+            return false;
+        },
+    )
+}
+
+fn check_for_interactables(
+    rapier_context: Res<RapierContext>,
+    player: Query<Entity, With<Player>>,
+    camera: Query<(&Transform, &GlobalTransform), With<PlayerCamera>>,
+) {
+    let (local, global) = camera.single();
+    rapier_context.intersections_with_ray(
+        global.translation(),
+        -local.local_z().as_vec3(),
+        1.0,
+        false,
+        QueryFilter::default(),
+        |entity, _| {
+            if entity == player.single() {
+                // Keep searching
+                return true;
+            }
+            println!("Looking at {:?}", entity);
             return false;
         },
     )
