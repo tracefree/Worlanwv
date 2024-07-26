@@ -1,6 +1,6 @@
 //! Spawn the main level by triggering other observers.
 
-use std::f32::consts::PI;
+use std::{cmp::Ordering, f32::consts::PI};
 
 use bevy::{
     color::palettes::tailwind,
@@ -219,11 +219,44 @@ fn spawn_colliders(
             .entity(entity)
             .insert(RigidBody::Fixed)
             .insert(GravityScale(0.0))
-            .insert(ActiveCollisionTypes::all())
-            .insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
+            .insert(ActiveCollisionTypes::all());
 
         if name.as_str().contains("terrain") {
-            commands.entity(entity).insert(Terrain);
+            let (heights, num_rows, num_cols, scale) = heightfield_from_mesh(mesh);
+            commands
+                .entity(entity)
+                .insert(Terrain)
+                .insert(Collider::heightfield(heights, num_rows, num_cols, scale));
+        } else {
+            commands
+                .entity(entity)
+                .insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
         }
     }
+}
+
+fn heightfield_from_mesh(mesh: &Mesh) -> (Vec<f32>, usize, usize, Vec3) {
+    let positions = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap();
+    let num_cuts = (positions.len() as f32).sqrt() as usize;
+    let mut heights: Vec<f32> = vec![];
+    let mut sorted_positions = positions.as_float3().unwrap().to_vec();
+    sorted_positions.sort_by(|pos1, pos2| -> Ordering {
+        if pos1[0] < pos2[0] {
+            Ordering::Less
+        } else if pos1[0] > pos2[0] {
+            Ordering::Greater
+        } else if pos1[2] < pos2[2] {
+            Ordering::Less
+        } else if pos1[2] > pos2[2] {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
+    });
+
+    for [_, y, _] in sorted_positions {
+        heights.push(y);
+    }
+
+    (heights, num_cuts, num_cuts, Vec3::new(100.0, 1.0, 100.0))
 }
