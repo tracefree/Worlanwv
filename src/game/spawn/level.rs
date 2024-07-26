@@ -132,7 +132,7 @@ fn spawn_level(
                     transform: Transform::from_xyz(1.0, 8.7, 1.0),
                     ..default()
                 })
-                .insert(Interactable::new("Take".into()))
+                .insert(Interactable::new("E: Take".into()))
                 .insert(Collider::ball(0.15))
                 .observe(on_hourglass_taken);
         });

@@ -53,6 +53,7 @@ pub enum SfxKey {
     HardStep3,
     HardStep4,
     CycleChange,
+    PickupHourglass,
 }
 
 impl AssetKey for SfxKey {
@@ -107,6 +108,10 @@ impl FromWorld for HandleMap<SfxKey> {
                 SfxKey::CycleChange,
                 asset_server.load("audio/sfx/cycle_change.wav"),
             ),
+            (
+                SfxKey::PickupHourglass,
+                asset_server.load("audio/sfx/hourglass.wav"),
+            ),
         ]
         .into()
     }
@@ -117,6 +122,7 @@ pub enum SoundtrackKey {
     Credits,
     Gameplay,
     OceanAmbiance,
+    CycleOne,
 }
 
 impl AssetKey for SoundtrackKey {
@@ -128,12 +134,8 @@ impl FromWorld for HandleMap<SoundtrackKey> {
         let asset_server = world.resource::<AssetServer>();
         [
             (
-                SoundtrackKey::Credits,
-                asset_server.load("audio/soundtracks/Monkeys Spinning Monkeys.ogg"),
-            ),
-            (
-                SoundtrackKey::Gameplay,
-                asset_server.load("audio/soundtracks/Fluffing A Duck.ogg"),
+                SoundtrackKey::CycleOne,
+                asset_server.load("audio/music/Celtic.wav"),
             ),
             (
                 SoundtrackKey::OceanAmbiance,

@@ -111,6 +111,9 @@ impl Interactable {
     }
 }
 
+#[derive(Component)]
+pub struct PromptText;
+
 #[derive(Event)]
 pub struct Interacted;
 
@@ -305,16 +308,20 @@ fn on_highlighted(trigger: Trigger<HighlightChanged>) {
 */
 
 fn update_highlight_mesh(
-    highlited: Res<CurrentHighlighted>,
+    highlighted: Res<CurrentHighlighted>,
     interactables: Query<(Entity, &Interactable)>,
+    mut prompt: Query<&mut Text, With<PromptText>>,
     mut commands: Commands,
 ) {
     for (entity, interactable) in interactables.iter() {
         if let Some(highlight_mesh) = interactable.highlight_mesh {
-            if highlited.0 == Some(entity) {
+            let mut text = prompt.single_mut();
+            if highlighted.0 == Some(entity) {
                 commands.entity(highlight_mesh).insert(Visibility::Visible);
+                text.sections[0].value = interactable.text.clone();
             } else {
                 commands.entity(highlight_mesh).insert(Visibility::Hidden);
+                text.sections[0].value = "".into();
             }
         }
     }
@@ -325,9 +332,11 @@ fn update_highlight_mesh(
 pub fn on_hourglass_taken(
     trigger: Trigger<Interacted>,
     mut inventory: ResMut<Inventory>,
+    mut prompt: Query<&mut Text, With<PromptText>>,
     mut commands: Commands,
 ) {
-    println!("Hourglass!");
     inventory.hourglass = true;
+    prompt.single_mut().sections[0].value = "Hold Q: Fast-forward time".into();
+    commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
     commands.entity(trigger.entity()).despawn();
 }
