@@ -1,5 +1,5 @@
 use core::time;
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Duration};
 
 use bevy::{
     pbr::ExtendedMaterial,
@@ -8,7 +8,7 @@ use bevy::{
 };
 use bevy_rapier3d::{
     plugin::RapierContext,
-    prelude::{ColliderDisabled, CollisionGroups, Group, QueryFilter},
+    prelude::{ColliderDisabled, CollisionGroups, Group, QueryFilter, RigidBodyDisabled},
 };
 
 use crate::{
@@ -18,6 +18,7 @@ use crate::{
 };
 
 use super::{
+    animation::Animations,
     assets::SfxKey,
     audio::sfx::PlaySfx,
     spawn::{
@@ -351,9 +352,28 @@ pub fn on_boat_used(
     trigger: Trigger<Interacted>,
     mut prompt: Query<&mut Text, With<PromptText>>,
     mut commands: Commands,
+    animations: Res<Animations>,
+    mut boat_root: Query<(Entity, &mut AnimationPlayer)>,
+    mut player: Query<(Entity, &mut Transform), With<Player>>,
 ) {
     prompt.single_mut().sections[0].value = "".into();
     println!("Boat used");
     commands.entity(trigger.entity()).insert(ColliderDisabled);
-    // commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
+
+    let mut transitions = AnimationTransitions::new();
+    let (entity, mut animation_player) = boat_root.single_mut();
+    transitions.play(
+        &mut animation_player,
+        animations.animations[0],
+        Duration::new(0, 50000),
+    );
+
+    let (player, mut transform) = player.single_mut();
+    commands.entity(player).insert(RigidBodyDisabled);
+    commands
+        .entity(entity)
+        .add_child(player)
+        .insert(animations.graph.clone())
+        .insert(transitions);
+    transform.translation = Vec3::new(0.0, 1.0, 0.0);
 }
