@@ -5,7 +5,6 @@ use bevy::{
     prelude::*,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_rapier3d::render::RapierDebugRenderPlugin;
 
 use crate::{
     game::logic::{CurrentCycle, CycleChanged},
@@ -19,7 +18,6 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(WorldInspectorPlugin::new());
     app.add_plugins(FpsOverlayPlugin::default());
     app.add_systems(Update, handle_input.in_set(AppSet::RecordInput));
-    app.add_plugins(RapierDebugRenderPlugin::default());
 }
 
 fn handle_input(

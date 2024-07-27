@@ -1,28 +1,19 @@
-use core::time;
 use std::{f32::consts::PI, time::Duration};
 
-use bevy::{
-    pbr::ExtendedMaterial,
-    prelude::*,
-    window::{CursorGrabMode, PrimaryWindow},
-};
+use bevy::prelude::*;
 use bevy_rapier3d::{
     plugin::RapierContext,
     prelude::{ColliderDisabled, CollisionGroups, Group, QueryFilter, RigidBodyDisabled},
 };
 
-use crate::{
-    game::audio::sfx::GroundMaterial,
-    screen::{PlayState, Screen},
-    AppSet,
-};
+use crate::{game::audio::sfx::GroundMaterial, screen::PlayState, AppSet};
 
 use super::{
     animation::Animations,
     assets::SfxKey,
     audio::sfx::PlaySfx,
     spawn::{
-        level::{SkyMaterial, Sun, SunPivot, Terrain, WaterMaterial},
+        level::{SkyMaterial, Sun, SunPivot, Terrain},
         player::{Player, PlayerCamera},
     },
 };
@@ -37,7 +28,12 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<Interactable>();
     app.add_systems(
         Update,
-        (animate_sun, animate_water, handle_interaction)
+        (
+            animate_sun,
+            //   animate_water,
+            handle_interaction,
+            tick_animation_timers,
+        )
             .in_set(AppSet::TickTimers)
             .run_if(in_state(PlayState::InGame)),
     );
@@ -103,6 +99,12 @@ pub struct Inventory {
     hourglass: bool,
     sapling: bool,
 }
+
+#[derive(Component)]
+pub struct AnimationTimer(Timer);
+
+#[derive(Event)]
+pub struct AnimationFinished;
 
 impl Interactable {
     pub fn new(text: String) -> Self {
@@ -180,6 +182,7 @@ fn animate_sun(
     }
 }
 
+/*
 fn animate_water(
     water_materials: Query<&Handle<WaterMaterial>>,
     mut mats: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterMaterial>>>,
@@ -191,6 +194,7 @@ fn animate_water(
         }*/
     }
 }
+*/
 
 fn cast_ground_ray(
     _trigger: Trigger<Footstep>,
@@ -263,7 +267,7 @@ fn check_for_interactables(
     let result = rapier_context.cast_ray(
         translation + rotation * Vec3::NEG_Z * 0.35,
         rotation * Vec3::NEG_Z,
-        1.0,
+        1.5,
         false,
         QueryFilter::from(CollisionGroups::new(
             Group::all() & !Group::GROUP_2,
@@ -302,17 +306,6 @@ fn handle_interaction(
         }
     }
 }
-
-/*
-fn on_highlighted(trigger: Trigger<HighlightChanged>) {
-    if let Some(previous) = trigger.event().from {
-        println!("Lost highlight on {:?}", previous);
-    }
-    if let Some(new) = trigger.event().to {
-        println!("Highlighted {:?}", new);
-    }
-}
-*/
 
 fn update_highlight_mesh(
     highlighted: Res<CurrentHighlighted>,
@@ -357,8 +350,11 @@ pub fn on_boat_used(
     mut player: Query<(Entity, &mut Transform), With<Player>>,
 ) {
     prompt.single_mut().sections[0].value = "".into();
-    println!("Boat used");
-    commands.entity(trigger.entity()).insert(ColliderDisabled);
+    commands
+        .entity(trigger.entity())
+        .insert(ColliderDisabled)
+        .insert(AnimationTimer(Timer::from_seconds(4.0, TimerMode::Once)))
+        .observe(on_boat_ride_finished);
 
     let mut transitions = AnimationTransitions::new();
     let (entity, mut animation_player) = boat_root.single_mut();
@@ -375,5 +371,36 @@ pub fn on_boat_used(
         .add_child(player)
         .insert(animations.graph.clone())
         .insert(transitions);
+
     transform.translation = Vec3::new(0.0, 1.0, 0.0);
+}
+
+fn tick_animation_timers(
+    mut timers: Query<(Entity, &mut AnimationTimer)>,
+    time: Res<Time>,
+    mut commands: Commands,
+) {
+    for (entity, mut timer) in timers.iter_mut() {
+        if timer.0.tick(time.delta()).just_finished() {
+            commands.trigger_targets(AnimationFinished, entity);
+        }
+    }
+}
+
+fn on_boat_ride_finished(
+    trigger: Trigger<AnimationFinished>,
+    mut commands: Commands,
+    mut player: Query<(Entity, &mut Transform, &GlobalTransform), With<Player>>,
+) {
+    let (player, mut transform, global_transform) = player.single_mut();
+
+    commands
+        .entity(player)
+        .remove::<RigidBodyDisabled>()
+        .remove_parent();
+
+    commands
+        .entity(trigger.entity())
+        .remove::<ColliderDisabled>();
+    transform.translation = global_transform.translation() + Vec3::new(0.5, 1.0, 0.5);
 }

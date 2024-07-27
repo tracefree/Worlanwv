@@ -11,12 +11,8 @@ fn play_soundtrack(
     trigger: Trigger<PlaySoundtrack>,
     mut commands: Commands,
     soundtrack_handles: Res<HandleMap<SoundtrackKey>>,
-    soundtrack_query: Query<Entity, With<IsSoundtrack>>,
+    //   soundtrack_query: Query<Entity, With<IsSoundtrack>>,
 ) {
-    for entity in &soundtrack_query {
-        // commands.entity(entity).despawn_recursive();
-    }
-
     let soundtrack_key = match trigger.event() {
         PlaySoundtrack::Key(key) => *key,
         PlaySoundtrack::Disable => return,

@@ -4,7 +4,7 @@ use std::{cmp::Ordering, f32::consts::PI};
 
 use bevy::{
     color::palettes::tailwind,
-    pbr::{DrawPrepass, ExtendedMaterial, MaterialExtension, NotShadowCaster},
+    pbr::{ExtendedMaterial, MaterialExtension, NotShadowCaster},
     prelude::*,
     render::{
         render_resource::{AsBindGroup, ShaderRef},
@@ -14,16 +14,12 @@ use bevy::{
 use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
-    plugin::RapierContext,
-    prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group, Velocity},
+    prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group},
 };
 
-use crate::{
-    game::logic::{on_boat_used, on_hourglass_taken, Cycle, Interactable},
-    screen::PlayState,
-};
+use crate::game::logic::{on_boat_used, on_hourglass_taken, Cycle, Interactable};
 
-use super::player::{Player, SpawnPlayer};
+use super::player::SpawnPlayer;
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level).observe(spawn_interactable);
@@ -287,7 +283,6 @@ fn spawn_interactable(
 ) {
     match trigger.event().0 {
         InteractableScene::Boat => {
-            println!("Spawn boat!");
             commands.entity(trigger.event().1).with_children(|parent| {
                 parent
                     .spawn(SceneBundle {
@@ -295,7 +290,7 @@ fn spawn_interactable(
                             .load(GltfAssetLabel::Scene(0).from_asset("models/boat.glb")),
                         ..default()
                     })
-                    .insert(Interactable::new("E - Use".into()))
+                    .insert(Interactable::new("E: Use".into()))
                     .insert(Collider::cuboid(3.5, 1.5, 2.5))
                     .insert(CollisionGroups::new(
                         Group::GROUP_2,

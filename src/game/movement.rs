@@ -3,28 +3,17 @@
 //! If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/latest/examples/movement/physics_in_fixed_timestep.rs).
 
-use std::f32::consts::PI;
-
 use bevy::{
     input::{mouse::MouseMotion, InputSystem},
     prelude::*,
 };
 use bevy_rapier3d::{
-    control::KinematicCharacterController, dynamics::Velocity,
-    prelude::KinematicCharacterControllerOutput,
+    control::KinematicCharacterController, prelude::KinematicCharacterControllerOutput,
 };
 
-use crate::{
-    screen::{PlayState, Screen},
-    AppSet,
-};
+use crate::{screen::PlayState, AppSet};
 
-use super::{
-    assets::SfxKey,
-    audio::sfx::{GroundMaterial, PlaySfx},
-    logic::Footstep,
-    spawn::player::CameraPivot,
-};
+use super::{logic::Footstep, spawn::player::CameraPivot};
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
