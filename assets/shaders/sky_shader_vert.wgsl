@@ -12,8 +12,8 @@
 fn vertex(vertex_no_morph: Vertex) -> VertexOutput {
     var out: VertexOutput;
 
-    out.world_position = vec4<f32>(vertex_no_morph.position * (-2500.0), 1.0);
-    out.position = position_world_to_clip(vertex_no_morph.position.xyz * (-2500.0));
+    out.world_position = vec4<f32>(vertex_no_morph.position * (-100000.0), 1.0);
+    out.position = position_world_to_clip(vertex_no_morph.position.xyz * (-100000.0));
 
     return out;
 }

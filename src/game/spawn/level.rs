@@ -142,15 +142,17 @@ fn spawn_level(
         });
 
     // Comet
-    commands.spawn(SceneBundle {
-        scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
-        transform: Transform {
-            translation: Vec3::new(0.0, 200.0, 400.0),
-            rotation: Quat::from_euler(EulerRot::YXZ, PI, 0.0, -PI / 8.0),
-            scale: Vec3::new(2.0, 2.0, 2.0),
-        },
-        ..default()
-    });
+    commands
+        .spawn(SceneBundle {
+            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
+            transform: Transform {
+                translation: Vec3::new(0.0, 200.0, 400.0),
+                rotation: Quat::from_euler(EulerRot::YXZ, PI, 0.0, -PI / 8.0),
+                scale: Vec3::new(2.0, 2.0, 2.0),
+            },
+            ..default()
+        })
+        .insert(NotShadowCaster);
 
     // Lights
     // Sun
