@@ -57,10 +57,13 @@ pub struct SunPivot;
 #[derive(Component)]
 pub struct Sun;
 
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Default)]
 pub struct SkyMaterial {
     #[uniform(0)]
     pub time: f32,
+    #[cfg(feature = "webgl2")]
+    #[uniform(1)]
+    pub _webgl2_padding: Vec3,
 }
 
 impl Material for SkyMaterial {

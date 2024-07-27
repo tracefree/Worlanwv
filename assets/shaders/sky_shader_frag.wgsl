@@ -10,6 +10,9 @@
 
 
 @group(2) @binding(0) var<uniform> time: f32;
+#ifdef SIXTEEN_BYTE_ALIGNMENT
+@group(2) @binding(1) var<uniform> _webgl2_padding: vec3<f32>;
+#endif
 
 
 @fragment

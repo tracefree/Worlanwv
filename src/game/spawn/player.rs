@@ -111,8 +111,8 @@ fn spawn_player(
                             specular_map: asset_server.load("textures/cubemap.ktx2"),
                             intensity: light_consts::lux::OVERCAST_DAY,
                         })
-                        .insert(BloomSettings::default())
-                        .insert(TemporalAntiAliasBundle::default());
+                        .insert(TemporalAntiAliasBundle::default())
+                        .insert(BloomSettings::default());
                 });
         });
 }

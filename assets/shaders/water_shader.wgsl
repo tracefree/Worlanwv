@@ -45,17 +45,19 @@ fn fragment(
 #endif
 
     // Water material
+
+    let color_blue = vec3(0.3, 0.3, 0.8);
+    var color = color_blue;
+
+    #ifndef WEBGL2
+    let depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);
+    let foam_factor = smoothstep(0.5, 1.0, abs(position_world_to_view(vertex.world_position.xyz).z - depth_ndc_to_view_z(depth)));
+    let color_foam = vec3(1.0);
+    color = mix(color_foam, color_blue, foam_factor);
+    #endif
+
     var normal = normalize(direction_world_to_view(vertex.world_normal));
     var view = -normalize(position_world_to_view(vertex.world_position.xyz));
-
-    let screen_uv = vertex.position.xy / view_bindings::view.viewport.zw;
-    let depth = textureSample(view_bindings::depth_prepass_texture, bevy_pbr::pbr_bindings::depth_map_sampler, screen_uv);
-
-    // let depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);
-    let foam_factor = smoothstep(0.5, 1.0, abs(position_world_to_view(vertex.world_position.xyz).z - depth_ndc_to_view_z(depth)));
-    var color_blue = vec3(0.3, 0.3, 0.8);
-    var color_foam = vec3(1.0);
-    var color = mix(color_foam, color_blue, foam_factor);
     var alpha = smoothstep(0.0, 0.5, fresnel(normal, view, 1.0));
 
     // Feed into standard material
