@@ -48,7 +48,7 @@ fn fragment(
     var normal = normalize(direction_world_to_view(vertex.world_normal));
     var view = -normalize(position_world_to_view(vertex.world_position.xyz));
 
-    let screen_uv = vertex.position.xy / view_bindings::view.viewport.zw;
+    let screen_uv: vec2<f32> = vertex.position.xy / view_bindings::view.viewport.zw;
     let depth = textureSample(view_bindings::depth_prepass_texture, bevy_pbr::pbr_bindings::depth_map_sampler, screen_uv);
 
     // let depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);

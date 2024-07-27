@@ -170,7 +170,7 @@ fn animate_sun(
 
     for material in sky_materials.iter() {
         if let Some(sky) = mats.get_mut(material) {
-            sky.time = brightness_factor;
+            sky.time.x = brightness_factor;
         }
     }
 }

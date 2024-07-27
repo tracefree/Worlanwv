@@ -9,7 +9,7 @@
 }
 
 
-@group(2) @binding(0) var<uniform> time: f32;
+@group(2) @binding(0) var<uniform> time: vec4<f32>;
 
 
 @fragment
@@ -20,9 +20,9 @@ fn fragment(
     var theta = acos(vertex.world_position.y / r);
     var color_day = vec3(0.2, 0.2, 0.9);
     var color_night = vec3(0.05, 0.0, 0.1);
-    var color = mix(color_night, color_day * 30.0, smoothstep(0.0, 0.5, time));
+    var color = mix(color_night, color_day * 30.0, smoothstep(0.0, 0.5, time.x));
     var sunset = vec3(0.4, 0.2, 0.0);
-    color = mix(color, sunset, theta * 0.2 * (1.0 - time));
+    color = mix(color, sunset, theta * 0.2 * (1.0 - time.x));
     if (theta > 1.58) {
         color = vec3(0.021, 0.119, 0.023) * 0.0;
     }
