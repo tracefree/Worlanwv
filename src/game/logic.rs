@@ -8,7 +8,7 @@ use bevy::{
 };
 use bevy_rapier3d::{
     plugin::RapierContext,
-    prelude::{ColliderDisabled, QueryFilter},
+    prelude::{ColliderDisabled, CollisionGroups, Group, QueryFilter},
 };
 
 use crate::{
@@ -221,6 +221,37 @@ fn cast_ground_ray(
     )
 }
 
+fn disable_intersecting_colliders(
+    rapier_context: Res<RapierContext>,
+    mut player: Query<Entity, With<Player>>,
+    mut commands: Commands,
+) {
+    let player = player.single_mut();
+    for (_, entity, intersecting) in rapier_context.intersection_pairs_with(player) {
+        if intersecting {
+            commands.entity(entity).insert(ColliderDisabled);
+        }
+    }
+}
+
+// TODO: Custom Schedule instead of local timer?
+fn reenable_colliders(
+    mut commands: Commands,
+    disabled_colliders: Query<Entity, (With<ColliderDisabled>, Without<Interactable>)>,
+    mut timer: Local<f32>,
+    time: Res<Time>,
+) {
+    *timer -= time.delta_seconds();
+    if *timer <= 0.0 {
+        *timer = 0.5;
+        for collider in disabled_colliders.iter() {
+            commands.entity(collider).remove::<ColliderDisabled>();
+        }
+    }
+}
+
+// --- Interactions ---
+
 fn check_for_interactables(
     rapier_context: Res<RapierContext>,
     camera: Query<&GlobalTransform, With<PlayerCamera>>,
@@ -233,7 +264,10 @@ fn check_for_interactables(
         rotation * Vec3::NEG_Z,
         1.0,
         false,
-        QueryFilter::default(),
+        QueryFilter::from(CollisionGroups::new(
+            Group::all() & !Group::GROUP_2,
+            Group::GROUP_2,
+        )),
     );
 
     if let Some((object, _)) = result {
@@ -252,35 +286,6 @@ fn check_for_interactables(
             });
         }
         highlighted.0 = None;
-    }
-}
-
-fn disable_intersecting_colliders(
-    rapier_context: Res<RapierContext>,
-    mut player: Query<Entity, With<Player>>,
-    mut commands: Commands,
-) {
-    let player = player.single_mut();
-    for (_, entity, intersecting) in rapier_context.intersection_pairs_with(player) {
-        if intersecting {
-            commands.entity(entity).insert(ColliderDisabled);
-        }
-    }
-}
-
-// TODO: Custom Schedule instead of local timer?
-fn reenable_colliders(
-    mut commands: Commands,
-    disabled_colliders: Query<Entity, With<ColliderDisabled>>,
-    mut timer: Local<f32>,
-    time: Res<Time>,
-) {
-    *timer -= time.delta_seconds();
-    if *timer <= 0.0 {
-        *timer = 0.5;
-        for collider in disabled_colliders.iter() {
-            commands.entity(collider).remove::<ColliderDisabled>();
-        }
     }
 }
 
@@ -340,4 +345,15 @@ pub fn on_hourglass_taken(
     prompt.single_mut().sections[0].value = "Hold Q: Fast-forward time".into();
     commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
     commands.entity(trigger.entity()).despawn();
+}
+
+pub fn on_boat_used(
+    trigger: Trigger<Interacted>,
+    mut prompt: Query<&mut Text, With<PromptText>>,
+    mut commands: Commands,
+) {
+    prompt.single_mut().sections[0].value = "".into();
+    println!("Boat used");
+    commands.entity(trigger.entity()).insert(ColliderDisabled);
+    // commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
 }

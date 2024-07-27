@@ -19,7 +19,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_plugins(WorldInspectorPlugin::new());
     app.add_plugins(FpsOverlayPlugin::default());
     app.add_systems(Update, handle_input.in_set(AppSet::RecordInput));
-    // app.add_plugins(RapierDebugRenderPlugin::default());
+    app.add_plugins(RapierDebugRenderPlugin::default());
 }
 
 fn handle_input(

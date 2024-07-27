@@ -15,8 +15,8 @@ use bevy_rapier3d::{
     dynamics::{Ccd, RigidBody, Velocity},
     geometry::Collider,
     prelude::{
-        ActiveCollisionTypes, ActiveEvents, CharacterAutostep, CharacterLength,
-        KinematicCharacterControllerOutput, Sensor,
+        ActiveCollisionTypes, ActiveEvents, CharacterAutostep, CharacterLength, CollisionGroups,
+        Group, KinematicCharacterControllerOutput, Sensor,
     },
 };
 
@@ -74,6 +74,7 @@ fn spawn_player(
                 ..default()
             },
             KinematicCharacterControllerOutput::default(),
+            CollisionGroups::new(Group::GROUP_1, Group::all() & !Group::GROUP_2),
             Collider::capsule_y(0.5, 0.3),
         ))
         .with_children(|player| {

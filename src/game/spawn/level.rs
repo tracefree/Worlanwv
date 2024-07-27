@@ -15,18 +15,18 @@ use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
     plugin::RapierContext,
-    prelude::{ActiveCollisionTypes, GravityScale, Velocity},
+    prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group, Velocity},
 };
 
 use crate::{
-    game::logic::{on_hourglass_taken, Cycle, Interactable},
+    game::logic::{on_boat_used, on_hourglass_taken, Cycle, Interactable},
     screen::PlayState,
 };
 
 use super::player::{Player, SpawnPlayer};
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(spawn_level);
+    app.observe(spawn_level).observe(spawn_interactable);
     // TODO: Do this once after loading geometry, don't check every frame
     app.add_plugins(MaterialPlugin::<SkyMaterial> {
         prepass_enabled: false,
@@ -41,6 +41,14 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Event, Debug)]
 pub struct SpawnLevel;
+
+pub enum InteractableScene {
+    Hourglass,
+    Boat,
+}
+
+#[derive(Event)]
+pub struct SpawnInteractable(pub InteractableScene, pub Entity);
 
 #[derive(Component)]
 pub struct Terrain;
@@ -138,21 +146,20 @@ fn spawn_level(
                 })
                 .insert(Interactable::new("E: Take".into()))
                 .insert(Collider::ball(0.15))
+                .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
                 .observe(on_hourglass_taken);
         });
 
     // Comet
-    commands
-        .spawn(SceneBundle {
-            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
-            transform: Transform {
-                translation: Vec3::new(0.0, 200.0, 400.0),
-                rotation: Quat::from_euler(EulerRot::YXZ, PI, 0.0, -PI / 8.0),
-                scale: Vec3::new(2.0, 2.0, 2.0),
-            },
-            ..default()
-        })
-        .insert(NotShadowCaster);
+    commands.spawn(SceneBundle {
+        scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
+        transform: Transform {
+            translation: Vec3::new(0.0, 200.0, 400.0),
+            rotation: Quat::from_euler(EulerRot::YXZ, PI, 0.0, -PI / 8.0),
+            scale: Vec3::new(2.0, 2.0, 2.0),
+        },
+        ..default()
+    });
 
     // Lights
     // Sun
@@ -203,10 +210,13 @@ fn spawn_colliders(
     mut commands: Commands,
     q_children: Query<&Children>,
     mut interactables: Query<(Entity, &mut Interactable)>,
-    scene_objects: Query<(Entity, &Name, &Handle<Mesh>), Added<Name>>,
+    scene_objects: Query<(Entity, &Name, Option<&Handle<Mesh>>), Added<Name>>,
     meshes: ResMut<Assets<Mesh>>,
 ) {
     for (entity, name, mesh) in scene_objects.iter() {
+        if name.as_str().contains("SpawnBoat") {
+            commands.trigger(SpawnInteractable(InteractableScene::Boat, entity));
+        }
         if name.as_str().contains("highlight") {
             for (scene_entity, mut interactable) in interactables.iter_mut() {
                 for descendent in q_children.iter_descendants(scene_entity) {
@@ -216,27 +226,30 @@ fn spawn_colliders(
                     interactable.highlight_mesh = Some(entity);
                 }
             }
+            continue;
         }
         if !name.as_str().contains("_col") {
             continue;
         }
-        let mesh = meshes.get(mesh).unwrap();
-        commands
-            .entity(entity)
-            .insert(RigidBody::Fixed)
-            .insert(GravityScale(0.0))
-            .insert(ActiveCollisionTypes::all());
+        if let Some(mesh) = mesh {
+            let mesh = meshes.get(mesh).unwrap();
+            commands
+                .entity(entity)
+                .insert(RigidBody::Fixed)
+                .insert(GravityScale(0.0))
+                .insert(ActiveCollisionTypes::all());
 
-        if name.as_str().contains("terrain") {
-            let (heights, num_rows, num_cols, scale) = heightfield_from_mesh(mesh);
-            commands
-                .entity(entity)
-                .insert(Terrain)
-                .insert(Collider::heightfield(heights, num_rows, num_cols, scale));
-        } else {
-            commands
-                .entity(entity)
-                .insert(Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap());
+            if name.as_str().contains("terrain") {
+                let (heights, num_rows, num_cols, scale) = heightfield_from_mesh(mesh);
+                commands
+                    .entity(entity)
+                    .insert(Terrain)
+                    .insert(Collider::heightfield(heights, num_rows, num_cols, scale));
+            } else {
+                commands.entity(entity).insert(
+                    Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap(),
+                );
+            }
         }
     }
 }
@@ -265,4 +278,32 @@ fn heightfield_from_mesh(mesh: &Mesh) -> (Vec<f32>, usize, usize, Vec3) {
     }
 
     (heights, num_cuts, num_cuts, Vec3::new(100.0, 1.0, 100.0))
+}
+
+fn spawn_interactable(
+    trigger: Trigger<SpawnInteractable>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    match trigger.event().0 {
+        InteractableScene::Boat => {
+            println!("Spawn boat!");
+            commands.entity(trigger.event().1).with_children(|parent| {
+                parent
+                    .spawn(SceneBundle {
+                        scene: asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("models/boat.glb")),
+                        ..default()
+                    })
+                    .insert(Interactable::new("E - Use".into()))
+                    .insert(Collider::cuboid(3.5, 1.5, 2.5))
+                    .insert(CollisionGroups::new(
+                        Group::GROUP_2,
+                        Group::ALL & !Group::GROUP_1,
+                    ))
+                    .observe(on_boat_used);
+            });
+        }
+        _ => {}
+    }
 }
