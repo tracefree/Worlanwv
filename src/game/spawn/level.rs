@@ -7,7 +7,8 @@ use bevy::{
     pbr::{ExtendedMaterial, MaterialExtension, NotShadowCaster},
     prelude::*,
     render::{
-        render_resource::{AsBindGroup, ShaderRef},
+        render_resource::{AsBindGroup, Sampler, ShaderRef},
+        texture,
         view::NoFrustumCulling,
     },
 };
@@ -16,6 +17,7 @@ use bevy_rapier3d::{
     geometry::{Collider, ComputedColliderShape},
     prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group},
 };
+use rand::distributions::uniform;
 
 use crate::game::logic::{on_boat_used, on_hourglass_taken, Cycle, Interactable};
 
@@ -75,6 +77,9 @@ impl Material for SkyMaterial {
 pub struct WaterMaterial {
     #[uniform(100)]
     pub time: f32,
+    #[texture(101)]
+    #[sampler(102)]
+    pub depth_sampler: Handle<Image>,
 }
 
 impl MaterialExtension for WaterMaterial {
@@ -101,7 +106,10 @@ fn spawn_level(
                 alpha_mode: AlphaMode::Blend,
                 ..default()
             },
-            extension: WaterMaterial { time: 0.0 },
+            extension: WaterMaterial {
+                time: 0.0,
+                depth_sampler: asset_server.load("textures/splash.png"),
+            },
         }),
         mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
         ..default()

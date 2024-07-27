@@ -4,6 +4,7 @@
     pbr_fragment::pbr_input_from_standard_material,
     pbr_functions::alpha_discard,
 }
+#import bevy_pbr::mesh_view_bindings as view_bindings
 
 #ifdef PREPASS_PIPELINE
 #import bevy_pbr::{
@@ -18,6 +19,7 @@
 #endif
 
 @group(2) @binding(100) var<uniform> time: f32;
+@group(2) @binding(102) var depth_sampler: sampler;
 
 fn fresnel(normal: vec3<f32>, view: vec3<f32>, amount: f32) -> f32 {
     return pow(1.0 - clamp(dot(normal, view), 0.0, 0.9), amount);
@@ -45,7 +47,11 @@ fn fragment(
     // Water material
     var normal = normalize(direction_world_to_view(vertex.world_normal));
     var view = -normalize(position_world_to_view(vertex.world_position.xyz));
-    var depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);
+
+    let screen_uv = vertex.position.xy * vec2<f32>(1.0 / 1280.0, 1.0 / 720.0);
+    let depth = textureSample(view_bindings::depth_prepass_texture, depth_sampler, screen_uv);
+
+   // let depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);
     let foam_factor = smoothstep(0.5, 1.0, abs(position_world_to_view(vertex.world_position.xyz).z - depth_ndc_to_view_z(depth)));
     var color_blue = vec3(0.3, 0.3, 0.8);
     var color_foam = vec3(1.0);
@@ -61,6 +67,7 @@ fn fragment(
     // Apply lighting and post-processing
     out.color = apply_pbr_lighting(pbr_input);
     out.color = main_pass_post_lighting_processing(pbr_input, out.color);
-
+  //  out.color = vec4<f32>(vec3<f32>(depth), 1.0);
+  //  out.color = mix(out.color, vec4<f32>(vec3<f32>(deptha), 1.0), step(0.5, screen_uv.x));
     return out;
 }
