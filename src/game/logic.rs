@@ -58,7 +58,7 @@ pub enum Cycle {
 }
 
 impl Cycle {
-    pub fn next(self: Self) -> Self {
+    pub fn next(self) -> Self {
         match self {
             Cycle::One => Cycle::Two,
             Cycle::Two => Cycle::Three,
@@ -214,7 +214,7 @@ fn cast_ground_ray(
             }
             // Treat every other surface as solid
             commands.trigger(PlaySfx::RandomStep(GroundMaterial::Solid));
-            return false;
+            false
         },
     )
 }
@@ -272,7 +272,6 @@ fn check_for_interactables(
             highlighted.0 = Some(object);
         }
     } else {
-        if highlighted.0.is_some() {}
         highlighted.0 = None;
     }
 }
