@@ -7,8 +7,7 @@ use bevy::{
     pbr::{ExtendedMaterial, MaterialExtension, NotShadowCaster},
     prelude::*,
     render::{
-        render_resource::{AsBindGroup, Sampler, ShaderRef},
-        texture,
+        render_resource::{AsBindGroup, ShaderRef},
         view::NoFrustumCulling,
     },
 };
@@ -17,7 +16,6 @@ use bevy_rapier3d::{
     geometry::{Collider, ComputedColliderShape},
     prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group},
 };
-use rand::distributions::uniform;
 
 use crate::game::logic::{on_boat_used, on_hourglass_taken, Cycle, Interactable};
 
@@ -197,7 +195,7 @@ fn spawn_level(
     commands
         .spawn(MaterialMeshBundle {
             mesh: meshes.add(Cuboid::default()),
-            material: sky_materials.add(SkyMaterial { time: 0.0 }),
+            material: sky_materials.add(SkyMaterial::default()),
             ..default()
         })
         .insert(NoFrustumCulling)

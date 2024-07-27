@@ -58,6 +58,7 @@ fn fragment(
 
     var normal = normalize(direction_world_to_view(vertex.world_normal));
     var view = -normalize(position_world_to_view(vertex.world_position.xyz));
+
     var alpha = smoothstep(0.0, 0.5, fresnel(normal, view, 1.0));
 
     // Feed into standard material
