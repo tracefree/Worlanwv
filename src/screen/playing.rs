@@ -85,7 +85,7 @@ fn exit_menu(mut windows: Query<&mut Window, With<PrimaryWindow>>) {
 fn enter_playing(mut commands: Commands, mut windows: Query<&mut Window, With<PrimaryWindow>>) {
     commands.trigger(SpawnLevel);
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::OceanAmbiance));
-    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::CycleOne));
+    // commands.trigger(PlaySoundtrack::Key(SoundtrackKey::CycleOne));
 
     // Grab cursor
     let mut primary_window = windows.single_mut();

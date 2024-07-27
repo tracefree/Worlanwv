@@ -20,9 +20,9 @@ fn fragment(
     var theta = acos(vertex.world_position.y / r);
     var color_day = vec3(0.2, 0.2, 0.9);
     var color_night = vec3(0.05, 0.0, 0.1);
-    var color = mix(color_night, color_day, time);
+    var color = mix(color_night, color_day * 30.0, smoothstep(0.0, 0.5, time));
     var sunset = vec3(0.4, 0.2, 0.0);
-    color = mix(color, sunset, theta * 0.2 * (1.0 - time)) * 30.0;
+    color = mix(color, sunset, theta * 0.2 * (1.0 - time));
     if (theta > 1.58) {
         color = vec3(0.021, 0.119, 0.023) * 0.5;
     }

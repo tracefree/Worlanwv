@@ -156,7 +156,7 @@ fn animate_sun(
         false => 1.0,
         true => 15.0,
     };
-    day_progress.0 += time.delta_seconds() * time_modifier / 30.0;
+    day_progress.0 += time.delta_seconds() * time_modifier / 60.0;
     if day_progress.0 >= 1.0 {
         day_progress.0 -= 1.0;
         let next_cycle = current_cycle.0.next();
@@ -164,9 +164,9 @@ fn animate_sun(
     }
 
     let mut pivot = pivot.single_mut();
-    let angle = PI * day_progress.0;
+    let angle = 2.0 * PI * day_progress.0;
     pivot.rotation = Quat::from_euler(EulerRot::YXZ, 0.0, -PI / 4.0, angle);
-    let brightness_factor = (day_progress.0 * PI).sin();
+    let brightness_factor = (day_progress.0 * 2.0 * PI).sin().clamp(0.0, 1.0);
     sun.single_mut().illuminance = light_consts::lux::AMBIENT_DAYLIGHT * brightness_factor;
     environment.single_mut().intensity =
         0.0.lerp(light_consts::lux::DARK_OVERCAST_DAY, brightness_factor);
