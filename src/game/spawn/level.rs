@@ -39,8 +39,8 @@ pub(super) fn plugin(app: &mut App) {
 pub struct SpawnLevel;
 
 pub enum InteractableScene {
-    Hourglass,
     Boat,
+    Hourglass,
 }
 
 #[derive(Event)]
@@ -48,9 +48,6 @@ pub struct SpawnInteractable(pub InteractableScene, pub Entity);
 
 #[derive(Component)]
 pub struct Terrain;
-
-#[derive(Component)]
-struct StuckInGeometry(Vec3);
 
 #[derive(Component)]
 pub struct SunPivot;
@@ -212,6 +209,8 @@ fn spawn_colliders(
     for (entity, name, mesh) in scene_objects.iter() {
         if name.as_str().contains("SpawnBoat") {
             commands.trigger(SpawnInteractable(InteractableScene::Boat, entity));
+        } else if name.as_str().contains("SpawnHourglass") {
+            commands.trigger(SpawnInteractable(InteractableScene::Hourglass, entity));
         }
         if name.as_str().contains("highlight") {
             for (scene_entity, mut interactable) in interactables.iter_mut() {
@@ -299,6 +298,8 @@ fn spawn_interactable(
                     .observe(on_boat_used);
             });
         }
-        _ => {}
+        InteractableScene::Hourglass => {
+            todo!();
+        }
     }
 }

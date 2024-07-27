@@ -2,21 +2,17 @@
 
 use bevy::{
     core_pipeline::{
-        bloom::{BloomPlugin, BloomSettings},
-        experimental::taa::TemporalAntiAliasBundle,
-        prepass::DepthPrepass,
+        bloom::BloomSettings, experimental::taa::TemporalAntiAliasBundle, prepass::DepthPrepass,
     },
     pbr::{ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionSettings},
     prelude::*,
-    render::view::NoFrustumCulling,
 };
 use bevy_rapier3d::{
     control::KinematicCharacterController,
-    dynamics::{Ccd, RigidBody, Velocity},
     geometry::Collider,
     prelude::{
-        ActiveCollisionTypes, ActiveEvents, CharacterAutostep, CharacterLength, CollisionGroups,
-        Group, KinematicCharacterControllerOutput, Sensor,
+        CharacterAutostep, CharacterLength, CollisionGroups, Group,
+        KinematicCharacterControllerOutput, RigidBody, Sensor,
     },
 };
 

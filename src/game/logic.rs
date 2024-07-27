@@ -79,12 +79,6 @@ pub struct Footstep;
 #[derive(Resource)]
 pub struct DayProgress(f32);
 
-#[derive(Event)]
-pub struct HighlightChanged {
-    pub from: Option<Entity>,
-    pub to: Option<Entity>,
-}
-
 #[derive(Resource)]
 pub struct CurrentHighlighted(pub Option<Entity>);
 
@@ -97,7 +91,6 @@ pub struct Interactable {
 #[derive(Resource, Default)]
 pub struct Inventory {
     hourglass: bool,
-    sapling: bool,
 }
 
 #[derive(Component)]
@@ -261,7 +254,6 @@ fn check_for_interactables(
     rapier_context: Res<RapierContext>,
     camera: Query<&GlobalTransform, With<PlayerCamera>>,
     mut highlighted: ResMut<CurrentHighlighted>,
-    mut commands: Commands,
 ) {
     let (_, rotation, translation) = camera.single().to_scale_rotation_translation();
     let result = rapier_context.cast_ray(
@@ -277,19 +269,10 @@ fn check_for_interactables(
 
     if let Some((object, _)) = result {
         if highlighted.0.is_none() {
-            commands.trigger(HighlightChanged {
-                from: highlighted.0,
-                to: Some(object),
-            });
             highlighted.0 = Some(object);
         }
     } else {
-        if highlighted.0.is_some() {
-            commands.trigger(HighlightChanged {
-                from: highlighted.0,
-                to: None,
-            });
-        }
+        if highlighted.0.is_some() {}
         highlighted.0 = None;
     }
 }
