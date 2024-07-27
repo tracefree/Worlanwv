@@ -77,9 +77,6 @@ impl Material for SkyMaterial {
 pub struct WaterMaterial {
     #[uniform(100)]
     pub time: f32,
-    #[texture(101)]
-    #[sampler(102)]
-    pub depth_sampler: Handle<Image>,
 }
 
 impl MaterialExtension for WaterMaterial {
@@ -106,10 +103,7 @@ fn spawn_level(
                 alpha_mode: AlphaMode::Blend,
                 ..default()
             },
-            extension: WaterMaterial {
-                time: 0.0,
-                depth_sampler: asset_server.load("textures/splash.png"),
-            },
+            extension: WaterMaterial { time: 0.0 },
         }),
         mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
         ..default()
