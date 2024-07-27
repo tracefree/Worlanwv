@@ -4,7 +4,7 @@ use std::{cmp::Ordering, f32::consts::PI};
 
 use bevy::{
     color::palettes::tailwind,
-    pbr::{DrawPrepass, NotShadowCaster},
+    pbr::{DrawPrepass, ExtendedMaterial, MaterialExtension, NotShadowCaster},
     prelude::*,
     render::{
         render_resource::{AsBindGroup, ShaderRef},
@@ -33,7 +33,9 @@ pub(super) fn plugin(app: &mut App) {
         shadows_enabled: false,
         ..default()
     });
-    app.add_plugins(MaterialPlugin::<WaterMaterial>::default());
+    app.add_plugins(MaterialPlugin::<
+        ExtendedMaterial<StandardMaterial, WaterMaterial>,
+    >::default());
     app.add_systems(Update, spawn_colliders);
 }
 
@@ -70,17 +72,13 @@ impl Material for SkyMaterial {
 
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct WaterMaterial {
-    #[uniform(0)]
+    #[uniform(100)]
     pub time: f32,
 }
 
-impl Material for WaterMaterial {
+impl MaterialExtension for WaterMaterial {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
         "shaders/water_shader.wgsl".into()
-    }
-
-    fn alpha_mode(&self) -> AlphaMode {
-        AlphaMode::Blend
     }
 }
 
@@ -90,14 +88,20 @@ fn spawn_level(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut sky_materials: ResMut<Assets<SkyMaterial>>,
-    mut water_materials: ResMut<Assets<WaterMaterial>>,
+    mut water_materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterMaterial>>>,
     asset_server: Res<AssetServer>,
 ) {
     commands.trigger(SpawnPlayer);
 
     // Ocean
     commands.spawn(MaterialMeshBundle {
-        material: water_materials.add(WaterMaterial { time: 0.0 }),
+        material: water_materials.add(ExtendedMaterial {
+            base: StandardMaterial {
+                alpha_mode: AlphaMode::Blend,
+                ..default()
+            },
+            extension: WaterMaterial { time: 0.0 },
+        }),
         mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
         ..default()
     });

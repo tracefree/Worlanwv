@@ -2,6 +2,7 @@ use core::time;
 use std::f32::consts::PI;
 
 use bevy::{
+    pbr::ExtendedMaterial,
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
@@ -154,7 +155,7 @@ fn animate_sun(
 ) {
     let time_modifier = match inventory.hourglass && input.pressed(KeyCode::KeyQ) {
         false => 1.0,
-        true => 15.0,
+        true => 30.0,
     };
     day_progress.0 += time.delta_seconds() * time_modifier / 60.0;
     if day_progress.0 >= 1.0 {
@@ -180,13 +181,13 @@ fn animate_sun(
 
 fn animate_water(
     water_materials: Query<&Handle<WaterMaterial>>,
-    mut mats: ResMut<Assets<WaterMaterial>>,
+    mut mats: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterMaterial>>>,
     time: Res<Time>,
 ) {
     for material in water_materials.iter() {
-        if let Some(water) = mats.get_mut(material) {
-            water.time = time.elapsed_seconds();
-        }
+        /*   if let Some(water) = mats.get_mut(material) {
+        water.time = time.elapsed_seconds();
+        }*/
     }
 }
 

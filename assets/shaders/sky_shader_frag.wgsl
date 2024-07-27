@@ -24,7 +24,7 @@ fn fragment(
     var sunset = vec3(0.4, 0.2, 0.0);
     color = mix(color, sunset, theta * 0.2 * (1.0 - time));
     if (theta > 1.58) {
-        color = vec3(0.021, 0.119, 0.023) * 0.5;
+        color = vec3(0.021, 0.119, 0.023) * 0.0;
     }
     return vec4(color, 1.0);
     //return vec4(0.0, 0.0, 1.0, 1.0);
