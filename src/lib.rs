@@ -62,8 +62,8 @@ impl Plugin for AppPlugin {
         app.add_plugins((game::plugin, screen::plugin, ui::plugin));
 
         // Enable dev tools for dev builds.
-        #[cfg(feature = "dev")]
-        app.add_plugins(dev_tools::plugin);
+        // #[cfg(all(feature = "dev", not(target_family = "wasm")))]
+        //app.add_plugins(dev_tools::plugin);
     }
 }
 
