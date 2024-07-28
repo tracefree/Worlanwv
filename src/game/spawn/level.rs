@@ -106,7 +106,7 @@ fn spawn_level(
             },
             extension: WaterMaterial { time: 0.0 },
         }),
-        mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1000.0))),
+        mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(10000.0))),
         ..default()
     });
 
@@ -145,6 +145,15 @@ fn spawn_level(
                 .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
                 .observe(on_hourglass_taken);
         });
+
+    // Cycle 3
+    commands
+        .spawn(SceneBundle {
+            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cycle_3.glb")),
+            transform: Transform::from_xyz(0.0, -300.0, 0.0),
+            ..default()
+        })
+        .insert(Cycle::Three);
 
     // Comet
     commands.spawn(SceneBundle {
