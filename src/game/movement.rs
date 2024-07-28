@@ -48,6 +48,7 @@ pub(super) fn plugin(app: &mut App) {
 pub struct MovementController {
     pub direction: Vec2,
     pub jump: bool,
+    pub disabled: bool,
 }
 
 #[derive(Resource)]
@@ -79,6 +80,9 @@ fn record_movement_controller(
 
     // Apply movement intent to controllers.
     for (mut controller, kinematic_output) in controller_query.iter_mut() {
+        if controller.disabled {
+            continue;
+        }
         controller.direction = intent;
         controller.jump = input.pressed(KeyCode::Space) && kinematic_output.grounded;
         if intent.length() < 0.5 || !kinematic_output.grounded {

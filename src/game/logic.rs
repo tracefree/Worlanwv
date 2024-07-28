@@ -12,6 +12,7 @@ use super::{
     animation::Animations,
     assets::SfxKey,
     audio::sfx::PlaySfx,
+    movement::MovementController,
     spawn::{
         level::{SkyMaterial, Sun, SunPivot, Terrain},
         player::{Player, PlayerCamera},
@@ -340,7 +341,7 @@ pub fn on_sapling_taken(
     inventory.sapling = true;
     //commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
     for (entity, name) in q_sapling.iter() {
-        if name.as_str().contains("Sapling") {
+        if name.as_str().contains("Sapling") || name.as_str().contains("TreeLower") {
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -353,7 +354,7 @@ pub fn on_boat_used(
     mut commands: Commands,
     animations: Res<Animations>,
     mut boat_root: Query<(Entity, &mut AnimationPlayer)>,
-    mut player: Query<(Entity, &mut Transform), With<Player>>,
+    mut player: Query<(Entity, &mut Transform, &mut MovementController), With<Player>>,
     mut docked_at_island: Local<bool>,
 ) {
     prompt.single_mut().sections[0].value = "".into();
@@ -378,7 +379,8 @@ pub fn on_boat_used(
         .set_repeat(RepeatAnimation::Count(1))
         .replay();
 
-    let (player, mut transform) = player.single_mut();
+    let (player, mut transform, mut controller) = player.single_mut();
+    controller.disabled = true;
     commands.entity(player).insert(RigidBodyDisabled);
     commands
         .entity(entity)
@@ -405,9 +407,19 @@ fn tick_animation_timers(
 fn on_boat_ride_finished(
     trigger: Trigger<AnimationFinished>,
     mut commands: Commands,
-    mut player: Query<(Entity, &mut Transform, &GlobalTransform), With<Player>>,
+    mut player: Query<
+        (
+            Entity,
+            &mut Transform,
+            &GlobalTransform,
+            &mut MovementController,
+        ),
+        With<Player>,
+    >,
 ) {
-    let (player, mut transform, global_transform) = player.single_mut();
+    let (player, mut transform, global_transform, mut controller) = player.single_mut();
+    controller.disabled = false;
+
     commands
         .entity(player)
         .remove::<RigidBodyDisabled>()
