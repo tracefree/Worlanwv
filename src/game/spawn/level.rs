@@ -131,20 +131,7 @@ fn spawn_level(
             transform: Transform::from_xyz(0.0, -200.0, 0.0),
             ..default()
         })
-        .insert(Cycle::Two)
-        .with_children(|scene| {
-            scene
-                .spawn(SceneBundle {
-                    scene: asset_server
-                        .load(GltfAssetLabel::Scene(0).from_asset("models/hourglass.glb")),
-                    transform: Transform::from_xyz(1.0, 8.7, 1.0),
-                    ..default()
-                })
-                .insert(Interactable::new("E: Take".into()))
-                .insert(Collider::ball(0.15))
-                .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
-                .observe(on_hourglass_taken);
-        });
+        .insert(Cycle::Two);
 
     // Cycle 3
     commands
@@ -311,7 +298,18 @@ fn spawn_interactable(
             });
         }
         InteractableScene::Hourglass => {
-            todo!();
+            commands.entity(trigger.event().1).with_children(|parent| {
+                parent
+                    .spawn(SceneBundle {
+                        scene: asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("models/hourglass.glb")),
+                        ..default()
+                    })
+                    .insert(Interactable::new("E: Take".into()))
+                    .insert(Collider::ball(0.15))
+                    .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
+                    .observe(on_hourglass_taken);
+            });
         }
     }
 }
