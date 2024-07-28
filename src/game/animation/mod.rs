@@ -19,8 +19,8 @@ fn setup(
     let animations = graph
         .add_clips(
             [
-                GltfAssetLabel::Animation(0).from_asset("models/cycle_2.glb"),
-                GltfAssetLabel::Animation(1).from_asset("models/cycle_2.glb"),
+                GltfAssetLabel::Animation(0).from_asset("models/cycle_1.glb"),
+                GltfAssetLabel::Animation(1).from_asset("models/cycle_1.glb"),
             ]
             .into_iter()
             .map(|path| asset_server.load(path)),

@@ -48,7 +48,7 @@ fn spawn_player(
             MovementController::default(),
             StateScoped(Screen::Playing),
             SpatialBundle {
-                transform: Transform::from_xyz(0.0, 10.0, 0.0),
+                transform: Transform::from_xyz(0.0, 20.0, 0.0),
                 ..default()
             },
             RigidBody::KinematicPositionBased,
