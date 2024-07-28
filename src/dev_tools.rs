@@ -16,7 +16,7 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     // Print state transitions in dev builds
     app.add_systems(Update, log_transitions::<Screen>);
-    //  app.add_plugins(RapierDebugRenderPlugin::default());
+    //app.add_plugins(RapierDebugRenderPlugin::default());
     app.add_plugins(FpsOverlayPlugin::default());
     app.add_systems(Update, handle_input.in_set(AppSet::RecordInput));
 }

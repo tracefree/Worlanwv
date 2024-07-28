@@ -31,10 +31,15 @@ pub(super) fn plugin(app: &mut App) {
         (
             animate_sun,
             //   animate_water,
-            handle_interaction,
             tick_animation_timers,
         )
             .in_set(AppSet::TickTimers)
+            .run_if(in_state(PlayState::InGame)),
+    );
+    app.add_systems(
+        Update,
+        (respawn, handle_interaction)
+            .in_set(AppSet::Update)
             .run_if(in_state(PlayState::InGame)),
     );
     app.add_systems(
@@ -91,6 +96,7 @@ pub struct Interactable {
 #[derive(Resource, Default)]
 pub struct Inventory {
     hourglass: bool,
+    sapling: bool,
 }
 
 #[derive(Component)]
@@ -259,7 +265,7 @@ fn check_for_interactables(
     let result = rapier_context.cast_ray(
         translation + rotation * Vec3::NEG_Z * 0.35,
         rotation * Vec3::NEG_Z,
-        1.5,
+        2.0,
         false,
         QueryFilter::from(CollisionGroups::new(
             Group::all() & !Group::GROUP_2,
@@ -268,9 +274,7 @@ fn check_for_interactables(
     );
 
     if let Some((object, _)) = result {
-        if highlighted.0.is_none() {
-            highlighted.0 = Some(object);
-        }
+        highlighted.0 = Some(object);
     } else {
         highlighted.0 = None;
     }
@@ -295,17 +299,21 @@ fn update_highlight_mesh(
     mut prompt: Query<&mut Text, With<PromptText>>,
     mut commands: Commands,
 ) {
+    let mut something_highlighted = false;
+    let mut text = prompt.single_mut();
     for (entity, interactable) in interactables.iter() {
         if let Some(highlight_mesh) = interactable.highlight_mesh {
-            let mut text = prompt.single_mut();
             if highlighted.0 == Some(entity) {
                 commands.entity(highlight_mesh).insert(Visibility::Visible);
                 text.sections[0].value = interactable.text.clone();
+                something_highlighted = true;
             } else {
                 commands.entity(highlight_mesh).insert(Visibility::Hidden);
-                text.sections[0].value = "".into();
             }
         }
+    }
+    if !something_highlighted {
+        text.sections[0].value = "".into();
     }
 }
 
@@ -321,6 +329,22 @@ pub fn on_hourglass_taken(
     prompt.single_mut().sections[0].value = "Hold Q: Fast-forward time".into();
     commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
     commands.entity(trigger.entity()).despawn();
+}
+
+pub fn on_sapling_taken(
+    trigger: Trigger<Interacted>,
+    mut inventory: ResMut<Inventory>,
+    q_sapling: Query<(Entity, &Name)>,
+    mut commands: Commands,
+) {
+    inventory.sapling = true;
+    //commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
+    for (entity, name) in q_sapling.iter() {
+        if name.as_str().contains("Sapling") {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+    commands.entity(trigger.entity()).insert(ColliderDisabled);
 }
 
 pub fn on_boat_used(
@@ -393,4 +417,16 @@ fn on_boat_ride_finished(
         .entity(trigger.entity())
         .remove::<ColliderDisabled>();
     transform.translation = global_transform.translation() + Vec3::new(0.5, 1.0, 0.5);
+}
+
+fn respawn(
+    mut transform: Query<&mut Transform, With<Player>>,
+    mut commands: Commands,
+    current_cycle: Res<CurrentCycle>,
+) {
+    let mut transform = transform.single_mut();
+    if transform.translation.y <= 0.0 {
+        transform.translation = Vec3::new(10.0, 5.0, 10.0);
+        commands.trigger(CycleChanged(current_cycle.0.next()));
+    }
 }

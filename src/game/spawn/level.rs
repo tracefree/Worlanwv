@@ -17,7 +17,7 @@ use bevy_rapier3d::{
     prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group},
 };
 
-use crate::game::logic::{on_boat_used, on_hourglass_taken, Cycle, Interactable};
+use crate::game::logic::{on_boat_used, on_hourglass_taken, on_sapling_taken, Cycle, Interactable};
 
 use super::player::SpawnPlayer;
 
@@ -41,6 +41,10 @@ pub struct SpawnLevel;
 pub enum InteractableScene {
     Boat,
     Hourglass,
+    MoundLower,
+    MoundUpper,
+    Stone,
+    Vault,
 }
 
 #[derive(Event)]
@@ -210,7 +214,10 @@ fn spawn_colliders(
             commands.trigger(SpawnInteractable(InteractableScene::Boat, entity));
         } else if name.as_str().contains("SpawnHourglass") {
             commands.trigger(SpawnInteractable(InteractableScene::Hourglass, entity));
+        } else if name.as_str().contains("SpawnLowerMound") {
+            commands.trigger(SpawnInteractable(InteractableScene::MoundLower, entity));
         }
+
         if name.as_str().contains("highlight") {
             for (scene_entity, mut interactable) in interactables.iter_mut() {
                 for descendent in q_children.iter_descendants(scene_entity) {
@@ -244,6 +251,9 @@ fn spawn_colliders(
                     Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap(),
                 );
             }
+        }
+        if name.as_str().contains("_colonly") {
+            commands.entity(entity).remove::<Handle<Mesh>>();
         }
     }
 }
@@ -310,6 +320,23 @@ fn spawn_interactable(
                     .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
                     .observe(on_hourglass_taken);
             });
+        }
+        InteractableScene::MoundLower => {
+            commands.entity(trigger.event().1).with_children(|parent| {
+                parent
+                    .spawn(SceneBundle {
+                        scene: asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("models/mound.glb")),
+                        ..default()
+                    })
+                    .insert(Interactable::new("E: Take".into()))
+                    .insert(Collider::ball(1.0))
+                    .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
+                    .observe(on_sapling_taken);
+            });
+        }
+        _ => {
+            todo!();
         }
     }
 }
