@@ -18,9 +18,12 @@ fn setup(
     let mut graph = AnimationGraph::new();
     let animations = graph
         .add_clips(
-            [GltfAssetLabel::Animation(0).from_asset("models/cycle_2.glb")]
-                .into_iter()
-                .map(|path| asset_server.load(path)),
+            [
+                GltfAssetLabel::Animation(0).from_asset("models/cycle_2.glb"),
+                GltfAssetLabel::Animation(1).from_asset("models/cycle_2.glb"),
+            ]
+            .into_iter()
+            .map(|path| asset_server.load(path)),
             1.0,
             graph.root,
         )

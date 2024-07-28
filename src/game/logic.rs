@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, time::Duration};
 
-use bevy::prelude::*;
+use bevy::{animation::RepeatAnimation, prelude::*};
 use bevy_rapier3d::{
     plugin::RapierContext,
     prelude::{ColliderDisabled, CollisionGroups, Group, QueryFilter, RigidBodyDisabled},
@@ -330,6 +330,7 @@ pub fn on_boat_used(
     animations: Res<Animations>,
     mut boat_root: Query<(Entity, &mut AnimationPlayer)>,
     mut player: Query<(Entity, &mut Transform), With<Player>>,
+    mut docked_at_island: Local<bool>,
 ) {
     prompt.single_mut().sections[0].value = "".into();
     commands
@@ -340,11 +341,18 @@ pub fn on_boat_used(
 
     let mut transitions = AnimationTransitions::new();
     let (entity, mut animation_player) = boat_root.single_mut();
-    transitions.play(
-        &mut animation_player,
-        animations.animations[0],
-        Duration::new(0, 50000),
-    );
+    let animation_index = match *docked_at_island {
+        true => 1,
+        false => 0,
+    };
+    transitions
+        .play(
+            &mut animation_player,
+            animations.animations[animation_index],
+            Duration::ZERO,
+        )
+        .set_repeat(RepeatAnimation::Count(1))
+        .replay();
 
     let (player, mut transform) = player.single_mut();
     commands.entity(player).insert(RigidBodyDisabled);
@@ -355,6 +363,7 @@ pub fn on_boat_used(
         .insert(transitions);
 
     transform.translation = Vec3::new(0.0, 1.0, 0.0);
+    *docked_at_island = !*docked_at_island;
 }
 
 fn tick_animation_timers(
@@ -375,7 +384,6 @@ fn on_boat_ride_finished(
     mut player: Query<(Entity, &mut Transform, &GlobalTransform), With<Player>>,
 ) {
     let (player, mut transform, global_transform) = player.single_mut();
-
     commands
         .entity(player)
         .remove::<RigidBodyDisabled>()
@@ -383,6 +391,7 @@ fn on_boat_ride_finished(
 
     commands
         .entity(trigger.entity())
+        .remove::<AnimationTransitions>()
         .remove::<ColliderDisabled>();
     transform.translation = global_transform.translation() + Vec3::new(0.5, 1.0, 0.5);
 }

@@ -66,7 +66,7 @@ impl Plugin for AppPlugin {
 
         // Enable dev tools for dev builds.
         // #[cfg(all(feature = "dev", not(target_family = "wasm")))]
-        //app.add_plugins(dev_tools::plugin);
+        app.add_plugins(dev_tools::plugin);
     }
 }
 
