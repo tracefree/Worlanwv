@@ -56,6 +56,11 @@ fn enter_loading(mut commands: Commands, asset_server: Res<AssetServer>) {
                     },
                 ))
                 .insert(StateScoped(Screen::Loading));
+            children.spawn(TextBundle {
+                text: Text::from_section("Loading...", TextStyle::default()),
+                style: Style { ..default() },
+                ..default()
+            });
         });
 }
 

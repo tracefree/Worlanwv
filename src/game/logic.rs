@@ -391,7 +391,6 @@ fn on_boat_ride_finished(
 
     commands
         .entity(trigger.entity())
-        .remove::<AnimationTransitions>()
         .remove::<ColliderDisabled>();
     transform.translation = global_transform.translation() + Vec3::new(0.5, 1.0, 0.5);
 }
