@@ -23,7 +23,7 @@ fn play_sfx(
         source: sfx_handles[&sfx_key].clone_weak(),
         settings: PlaybackSettings {
             mode: PlaybackMode::Despawn,
-            volume: Volume::new(2.0),
+            volume: Volume::new(5.0),
             ..default()
         },
     });

@@ -339,7 +339,7 @@ pub fn on_sapling_taken(
     mut commands: Commands,
 ) {
     inventory.sapling = true;
-    //commands.trigger(PlaySfx::Key(SfxKey::PickupHourglass));
+    commands.trigger(PlaySfx::Key(SfxKey::Harvest));
     for (entity, name) in q_sapling.iter() {
         if name.as_str().contains("Sapling") || name.as_str().contains("TreeLower") {
             commands.entity(entity).despawn_recursive();
@@ -358,6 +358,7 @@ pub fn on_boat_used(
     mut docked_at_island: Local<bool>,
 ) {
     prompt.single_mut().sections[0].value = "".into();
+    commands.trigger(PlaySfx::Key(SfxKey::Row));
     commands
         .entity(trigger.entity())
         .insert(ColliderDisabled)

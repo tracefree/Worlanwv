@@ -54,6 +54,8 @@ pub enum SfxKey {
     HardStep4,
     CycleChange,
     PickupHourglass,
+    Harvest,
+    Row,
 }
 
 impl AssetKey for SfxKey {
@@ -112,6 +114,8 @@ impl FromWorld for HandleMap<SfxKey> {
                 SfxKey::PickupHourglass,
                 asset_server.load("audio/sfx/hourglass.wav"),
             ),
+            (SfxKey::Harvest, asset_server.load("audio/sfx/harvest.wav")),
+            (SfxKey::Row, asset_server.load("audio/sfx/row.wav")),
         ]
         .into()
     }
