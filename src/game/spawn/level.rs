@@ -18,8 +18,8 @@ use bevy_rapier3d::{
 };
 
 use crate::game::logic::{
-    on_boat_used, on_hourglass_taken, on_sapling_planted, on_sapling_taken, BoatPosition, Cycle,
-    Interactable,
+    on_boat_used, on_hourglass_taken, on_monument_finished, on_sapling_planted, on_sapling_taken,
+    BoatPosition, Cycle, Interactable,
 };
 
 use super::player::SpawnPlayer;
@@ -47,7 +47,7 @@ pub enum InteractableScene {
     MoundLower,
     MoundUpper,
     Stone,
-    Vault,
+    Bunker,
 }
 
 #[derive(Event)]
@@ -223,6 +223,10 @@ fn spawn_colliders(
             commands.trigger(SpawnInteractable(InteractableScene::MoundLower, entity));
         } else if name.as_str().contains("SpawnUpperMound") {
             commands.trigger(SpawnInteractable(InteractableScene::MoundUpper, entity));
+        } else if name.as_str().contains("SpawnStone") {
+            commands.trigger(SpawnInteractable(InteractableScene::Stone, entity));
+        } else if name.as_str().contains("SpawnBunker") {
+            commands.trigger(SpawnInteractable(InteractableScene::Bunker, entity));
         }
 
         if name.as_str().contains("highlight") {
@@ -232,6 +236,7 @@ fn spawn_colliders(
                         continue;
                     }
                     interactable.highlight_mesh = Some(entity);
+                    commands.entity(entity).insert(Visibility::Hidden);
                 }
             }
             continue;
@@ -365,7 +370,21 @@ fn spawn_interactable(
                     .observe(on_sapling_planted);
             });
         }
-        _ => {
+        InteractableScene::Stone => {
+            commands.entity(trigger.event().1).with_children(|parent| {
+                parent
+                    .spawn(SceneBundle {
+                        scene: asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("models/stone.glb")),
+                        ..default()
+                    })
+                    .insert(Interactable::new("E: Finish monument".into()))
+                    .insert(Collider::cuboid(1.0, 3.0, 0.3))
+                    .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
+                    .observe(on_monument_finished);
+            });
+        }
+        InteractableScene::Bunker => {
             todo!();
         }
     }
