@@ -30,6 +30,7 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         handle_menu_action.run_if(in_state(PlayState::InMenu)),
     );
+    app.add_systems(Update, capture_cursor.run_if(in_state(PlayState::InGame)));
 }
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
@@ -80,6 +81,21 @@ fn exit_menu(mut windows: Query<&mut Window, With<PrimaryWindow>>) {
     let mut primary_window = windows.single_mut();
     primary_window.cursor.grab_mode = CursorGrabMode::Locked;
     primary_window.cursor.visible = false;
+}
+
+// Workaround for Web: https://github.com/bevyengine/bevy/issues/8949#issuecomment-2254364322
+fn capture_cursor(
+    mut q_window: Query<&mut Window>,
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+) {
+    let Ok(mut window) = q_window.get_single_mut() else {
+        return;
+    };
+    window.cursor.visible = false;
+    window.cursor.grab_mode = CursorGrabMode::Locked;
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        window.cursor.grab_mode = CursorGrabMode::Confined;
+    }
 }
 
 fn enter_playing(mut commands: Commands, mut windows: Query<&mut Window, With<PrimaryWindow>>) {
@@ -149,10 +165,16 @@ fn toggle_pause(
 }
 
 fn handle_menu_action(
+    input: Res<ButtonInput<KeyCode>>,
     mut next_screen: ResMut<NextState<PlayState>>,
     mut button_query: InteractionQuery<&TitleAction>,
     #[cfg(not(target_family = "wasm"))] mut app_exit: EventWriter<AppExit>,
 ) {
+    if input.just_pressed(KeyCode::Enter) {
+        next_screen.set(PlayState::InGame);
+        return;
+    }
+
     for (interaction, action) in &mut button_query {
         if matches!(interaction, Interaction::Pressed) {
             match action {
