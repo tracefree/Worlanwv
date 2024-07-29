@@ -17,7 +17,9 @@ use bevy_rapier3d::{
     prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group},
 };
 
-use crate::game::logic::{on_boat_used, on_hourglass_taken, on_sapling_taken, Cycle, Interactable};
+use crate::game::logic::{
+    on_boat_used, on_hourglass_taken, on_sapling_taken, BoatPosition, Cycle, Interactable,
+};
 
 use super::player::SpawnPlayer;
 
@@ -206,12 +208,14 @@ fn spawn_colliders(
     mut commands: Commands,
     q_children: Query<&Children>,
     mut interactables: Query<(Entity, &mut Interactable)>,
-    scene_objects: Query<(Entity, &Name, Option<&Handle<Mesh>>), Added<Name>>,
+    scene_objects: Query<(Entity, &Name, Option<&Handle<Mesh>>, &Transform), Added<Name>>,
     meshes: ResMut<Assets<Mesh>>,
+    mut boat_position: ResMut<BoatPosition>,
 ) {
-    for (entity, name, mesh) in scene_objects.iter() {
+    for (entity, name, mesh, transform) in scene_objects.iter() {
         if name.as_str().contains("SpawnBoat") {
             commands.trigger(SpawnInteractable(InteractableScene::Boat, entity));
+            boat_position.initial_transform = *transform;
         } else if name.as_str().contains("SpawnHourglass") {
             commands.trigger(SpawnInteractable(InteractableScene::Hourglass, entity));
         } else if name.as_str().contains("SpawnLowerMound") {

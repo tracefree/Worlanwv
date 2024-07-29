@@ -23,6 +23,7 @@ pub(super) fn plugin(app: &mut App) {
     app.insert_resource(CurrentCycle(Cycle::One))
         .insert_resource(DayProgress(0.0))
         .insert_resource(CurrentHighlighted(None))
+        .insert_resource(BoatPosition::default())
         .insert_resource(Inventory::default());
     app.observe(on_cycle_changed);
     app.observe(cast_ground_ray);
@@ -121,13 +122,25 @@ pub struct PromptText;
 #[derive(Event)]
 pub struct Interacted;
 
+#[derive(Resource, Default)]
+pub struct BoatPosition {
+    pub initial_transform: Transform,
+    pub docked_at_island: bool,
+    pub currently_rowing: bool,
+}
+
 fn on_cycle_changed(
     trigger: Trigger<CycleChanged>,
     mut current_cycle: ResMut<CurrentCycle>,
-    mut colliders: Query<(&mut Transform, &Cycle)>,
+    mut colliders: Query<(&mut Transform, &Cycle), Without<AnimationPlayer>>,
+    mut prompt: Query<&mut Text, With<PromptText>>,
     mut commands: Commands,
+    mut boat: Query<&mut Transform, With<AnimationPlayer>>,
+    mut boat_position: ResMut<BoatPosition>,
 ) {
     current_cycle.0 = trigger.event().0;
+    prompt.single_mut().sections[0].value = "".into();
+
     for (mut transform, cycle) in colliders.iter_mut() {
         if *cycle != current_cycle.0 {
             let depth_modifier = match *cycle {
@@ -141,6 +154,9 @@ fn on_cycle_changed(
         }
     }
     commands.trigger(PlaySfx::Key(SfxKey::CycleChange));
+
+    *boat.single_mut() = boat_position.initial_transform;
+    boat_position.docked_at_island = false;
 }
 
 fn animate_sun(
@@ -155,7 +171,13 @@ fn animate_sun(
     input: Res<ButtonInput<KeyCode>>,
     inventory: Res<Inventory>,
     mut commands: Commands,
+    boat_position: Res<BoatPosition>,
 ) {
+    // TODO: Cleaner solution for pausing time
+    if boat_position.currently_rowing {
+        return;
+    }
+
     let time_modifier = match inventory.hourglass && input.pressed(KeyCode::KeyQ) {
         false => 1.0,
         true => 30.0,
@@ -313,7 +335,7 @@ fn update_highlight_mesh(
             }
         }
     }
-    if !something_highlighted {
+    if !something_highlighted && text.sections[0].value.starts_with("E: ") {
         text.sections[0].value = "".into();
     }
 }
@@ -355,7 +377,7 @@ pub fn on_boat_used(
     animations: Res<Animations>,
     mut boat_root: Query<(Entity, &mut AnimationPlayer)>,
     mut player: Query<(Entity, &mut Transform, &mut MovementController), With<Player>>,
-    mut docked_at_island: Local<bool>,
+    mut boat_position: ResMut<BoatPosition>,
 ) {
     prompt.single_mut().sections[0].value = "".into();
     commands.trigger(PlaySfx::Key(SfxKey::Row));
@@ -367,7 +389,7 @@ pub fn on_boat_used(
 
     let mut transitions = AnimationTransitions::new();
     let (entity, mut animation_player) = boat_root.single_mut();
-    let animation_index = match *docked_at_island {
+    let animation_index = match boat_position.docked_at_island {
         true => 1,
         false => 0,
     };
@@ -390,7 +412,8 @@ pub fn on_boat_used(
         .insert(transitions);
 
     transform.translation = Vec3::new(0.0, 1.0, 0.0);
-    *docked_at_island = !*docked_at_island;
+    boat_position.docked_at_island = !boat_position.docked_at_island;
+    boat_position.currently_rowing = true;
 }
 
 fn tick_animation_timers(
@@ -417,6 +440,7 @@ fn on_boat_ride_finished(
         ),
         With<Player>,
     >,
+    mut boat_position: ResMut<BoatPosition>,
 ) {
     let (player, mut transform, global_transform, mut controller) = player.single_mut();
     controller.disabled = false;
@@ -430,6 +454,7 @@ fn on_boat_ride_finished(
         .entity(trigger.entity())
         .remove::<ColliderDisabled>();
     transform.translation = global_transform.translation() + Vec3::new(0.5, 1.0, 0.5);
+    boat_position.currently_rowing = false;
 }
 
 fn respawn(

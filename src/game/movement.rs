@@ -106,6 +106,9 @@ fn apply_movement(
     mut commands: Commands,
 ) {
     for (controller, mut body, output) in &mut movement_query {
+        if controller.disabled {
+            continue;
+        }
         let pivot = camera_pivot.single();
         // TODO: Find better way to do this
         let speed = 8.0;
