@@ -11,23 +11,25 @@ fn play_soundtrack(
     trigger: Trigger<PlaySoundtrack>,
     mut commands: Commands,
     soundtrack_handles: Res<HandleMap<SoundtrackKey>>,
-    //   soundtrack_query: Query<Entity, With<IsSoundtrack>>,
+    soundtrack_query: Query<Entity, With<IsSoundtrack>>,
 ) {
-    let soundtrack_key = match trigger.event() {
-        PlaySoundtrack::Key(key) => *key,
-        PlaySoundtrack::Disable => return,
-    };
-
-    commands.spawn((
-        AudioSourceBundle {
-            source: soundtrack_handles[&soundtrack_key].clone_weak(),
+    if let PlaySoundtrack::Key(soundtrack_key) = trigger.event() {
+        let mut audio_player = commands.spawn((AudioSourceBundle {
+            source: soundtrack_handles[soundtrack_key].clone_weak(),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Loop,
                 ..default()
             },
-        },
-        IsSoundtrack,
-    ));
+        },));
+        if soundtrack_key == &SoundtrackKey::CycleOne {
+            audio_player.insert(IsSoundtrack);
+        }
+    } else {
+        println!("Desp");
+        for track in soundtrack_query.iter() {
+            commands.entity(track).despawn();
+        }
+    }
 }
 
 /// Trigger this event to play or disable the soundtrack.

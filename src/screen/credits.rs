@@ -1,10 +1,13 @@
 //! A credits screen that can be accessed from the title screen.
 
+use std::fmt::format;
+
 use bevy::prelude::*;
+use ui_palette::NODE_BACKGROUND;
 
 use super::Screen;
 use crate::{
-    game::{assets::SoundtrackKey, audio::soundtrack::PlaySoundtrack},
+    game::{assets::SoundtrackKey, audio::soundtrack::PlaySoundtrack, logic::CurrentCycle},
     ui::prelude::*,
 };
 
@@ -25,24 +28,29 @@ enum CreditsAction {
     Back,
 }
 
-fn enter_credits(mut commands: Commands) {
+fn enter_credits(mut commands: Commands, current_cycle: Res<CurrentCycle>) {
     commands
         .ui_root()
         .insert(StateScoped(Screen::Credits))
+        .insert(BackgroundColor(NODE_BACKGROUND))
         .with_children(|children| {
-            children.header("Made by");
-            children.label("Alice - Foo");
-            children.label("Bob - Bar");
+            children.header(format!("Time taken to complete your project: {} years", current_cycle.1 * 12020));
 
-            children.header("Assets");
-            children.label("Bevy logo - All rights reserved by the Bevy Foundation. Permission granted for splash screen use when unmodified.");
-            children.label("Ducky sprite - CC0 by Caz Creates Games");
-            children.label("Music - CC BY 3.0 by Kevin MacLeod");
+            children.header("Game Design, Programming, 3D Art");
+            children.label("Rie");
 
-            children.button("Back").insert(CreditsAction::Back);
+            children.header("Original Music");
+            children.label("Ira Provectus and Michael Feigl");
+
+            children.header("Bevy Quickstart Template");
+            children.label("TheBevyFlock");
+
+            children.header("Free sound assets");
+            children.label("AudioPaplin, kangaroovindaloo, Andreas Mustola, moogy73, OwlishMedia, Valenspire, juskiddink");
+
         });
 
-    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Credits));
+    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::CycleOne));
 }
 
 fn exit_credits(mut commands: Commands) {

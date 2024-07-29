@@ -123,8 +123,6 @@ impl FromWorld for HandleMap<SfxKey> {
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
 pub enum SoundtrackKey {
-    Credits,
-    Gameplay,
     OceanAmbiance,
     CycleOne,
 }

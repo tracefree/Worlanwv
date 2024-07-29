@@ -85,7 +85,7 @@ fn exit_menu(mut windows: Query<&mut Window, With<PrimaryWindow>>) {
 fn enter_playing(mut commands: Commands, mut windows: Query<&mut Window, With<PrimaryWindow>>) {
     commands.trigger(SpawnLevel);
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::OceanAmbiance));
-    // commands.trigger(PlaySoundtrack::Key(SoundtrackKey::CycleOne));
+    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::CycleOne));
 
     // Grab cursor
     let mut primary_window = windows.single_mut();
@@ -93,36 +93,39 @@ fn enter_playing(mut commands: Commands, mut windows: Query<&mut Window, With<Pr
     primary_window.cursor.visible = false;
 
     // Spawn prompt
-    commands.ui_root().with_children(|root| {
-        root.spawn(NodeBundle {
-            style: Style {
-                // width: Percent(30.0),
-                height: Percent(100.0),
-                justify_content: JustifyContent::End,
-                align_items: AlignItems::End,
-                align_self: AlignSelf::Center,
-                flex_direction: FlexDirection::Column,
-                padding: UiRect::all(Percent(5.0)),
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|container| {
-            container
-                .spawn(TextBundle {
-                    text: Text::from_section(
-                        "",
-                        TextStyle {
-                            font_size: 32.0,
-                            ..default()
-                        },
-                    ),
+    commands
+        .ui_root()
+        .insert(StateScoped(Screen::Playing))
+        .with_children(|root| {
+            root.spawn(NodeBundle {
+                style: Style {
+                    // width: Percent(30.0),
+                    height: Percent(100.0),
+                    justify_content: JustifyContent::End,
+                    align_items: AlignItems::End,
+                    align_self: AlignSelf::Center,
+                    flex_direction: FlexDirection::Column,
+                    padding: UiRect::all(Percent(5.0)),
+                    position_type: PositionType::Absolute,
                     ..default()
-                })
-                .insert(PromptText);
+                },
+                ..default()
+            })
+            .with_children(|container| {
+                container
+                    .spawn(TextBundle {
+                        text: Text::from_section(
+                            "",
+                            TextStyle {
+                                font_size: 32.0,
+                                ..default()
+                            },
+                        ),
+                        ..default()
+                    })
+                    .insert(PromptText);
+            });
         });
-    });
 }
 
 fn exit_playing(mut commands: Commands, mut windows: Query<&mut Window, With<PrimaryWindow>>) {

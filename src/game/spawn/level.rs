@@ -18,8 +18,8 @@ use bevy_rapier3d::{
 };
 
 use crate::game::logic::{
-    on_boat_used, on_hourglass_taken, on_monument_finished, on_sapling_planted, on_sapling_taken,
-    BoatPosition, Cycle, Interactable,
+    on_boat_used, on_game_finished, on_hourglass_taken, on_monument_finished, on_sapling_planted,
+    on_sapling_taken, BoatPosition, Cycle, Interactable,
 };
 
 use super::player::SpawnPlayer;
@@ -394,7 +394,18 @@ fn spawn_interactable(
             });
         }
         InteractableScene::Bunker => {
-            todo!();
+            commands.entity(trigger.event().1).with_children(|parent| {
+                parent
+                    .spawn(SceneBundle {
+                        scene: asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("models/bunker.glb")),
+                        ..default()
+                    })
+                    .insert(Interactable::new("E: Return to Vault".into()))
+                    .insert(Collider::capsule_y(4.0, 4.2))
+                    .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
+                    .observe(on_game_finished);
+            });
         }
     }
 }

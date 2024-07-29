@@ -6,12 +6,16 @@ use bevy_rapier3d::{
     prelude::{ColliderDisabled, CollisionGroups, Group, QueryFilter, RigidBodyDisabled},
 };
 
-use crate::{game::audio::sfx::GroundMaterial, screen::PlayState, AppSet};
+use crate::{
+    game::audio::sfx::GroundMaterial,
+    screen::{PlayState, Screen},
+    AppSet,
+};
 
 use super::{
     animation::Animations,
-    assets::SfxKey,
-    audio::sfx::PlaySfx,
+    assets::{SfxKey, SoundtrackKey},
+    audio::{sfx::PlaySfx, soundtrack::PlaySoundtrack},
     movement::MovementController,
     spawn::{
         level::{SkyMaterial, Sun, SunPivot, Terrain},
@@ -24,7 +28,11 @@ pub(super) fn plugin(app: &mut App) {
         .insert_resource(DayProgress(0.0))
         .insert_resource(CurrentHighlighted(None))
         .insert_resource(BoatPosition::default())
-        .insert_resource(Inventory::default());
+        .insert_resource(Inventory {
+            hourglass: true,
+            sapling: false,
+            monument_finished: true,
+        });
     app.observe(on_cycle_changed);
     app.observe(cast_ground_ray);
     app.register_type::<Interactable>();
@@ -143,6 +151,10 @@ fn on_cycle_changed(
 ) {
     if current_cycle.0 == Cycle::Final {
         return;
+    }
+
+    if trigger.event().0 == Cycle::Final {
+        commands.trigger(PlaySoundtrack::Disable);
     }
 
     current_cycle.0 = trigger.event().0;
@@ -428,6 +440,15 @@ pub fn on_monument_finished(
         */
     }
     commands.entity(trigger.entity()).insert(ColliderDisabled);
+}
+
+pub fn on_game_finished(
+    _trigger: Trigger<Interacted>,
+    mut commands: Commands,
+    mut next_screen: ResMut<NextState<Screen>>,
+) {
+    commands.trigger(PlaySfx::Key(SfxKey::CycleChange));
+    next_screen.set(Screen::Credits);
 }
 
 pub fn on_boat_used(
