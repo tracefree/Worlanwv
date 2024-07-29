@@ -111,7 +111,7 @@ fn apply_movement(
         }
         let pivot = camera_pivot.single();
         // TODO: Find better way to do this
-        let speed = 8.0;
+        let speed = 6.0;
         let planar_velocity =
             Quat::from_rotation_y(pivot.rotation.to_euler(EulerRot::YZX).0).mul_vec3(Vec3::new(
                 controller.direction.x,

@@ -221,8 +221,8 @@ fn animate_sun(
     pivot.rotation = Quat::from_euler(EulerRot::YXZ, 0.0, -PI / 4.0, angle);
     let brightness_factor = (day_progress.0 * 2.0 * PI).sin().clamp(0.0, 1.0);
     sun.single_mut().illuminance = light_consts::lux::AMBIENT_DAYLIGHT * brightness_factor;
-    environment.single_mut().intensity =
-        0.0.lerp(light_consts::lux::DARK_OVERCAST_DAY, brightness_factor);
+    environment.single_mut().intensity = light_consts::lux::FULL_MOON_NIGHT
+        .lerp(light_consts::lux::DARK_OVERCAST_DAY, brightness_factor);
 
     for material in sky_materials.iter() {
         if let Some(sky) = mats.get_mut(material) {

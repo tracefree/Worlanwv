@@ -170,6 +170,12 @@ fn spawn_level(
     });
 
     // Lights
+
+    commands.insert_resource(AmbientLight {
+        color: Color::WHITE,
+        brightness: light_consts::lux::CLEAR_SUNRISE,
+    });
+
     // Sun
     commands
         .spawn(SpatialBundle::default())
