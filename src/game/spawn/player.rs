@@ -102,7 +102,7 @@ fn spawn_player(
                         .insert(ScreenSpaceAmbientOcclusionBundle {
                             settings: ScreenSpaceAmbientOcclusionSettings {
                                 quality_level:
-                                    bevy::pbr::ScreenSpaceAmbientOcclusionQualityLevel::High,
+                                    bevy::pbr::ScreenSpaceAmbientOcclusionQualityLevel::Medium,
                             },
                             ..default()
                         })

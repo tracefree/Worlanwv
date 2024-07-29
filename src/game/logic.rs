@@ -370,6 +370,28 @@ pub fn on_sapling_taken(
     commands.entity(trigger.entity()).insert(ColliderDisabled);
 }
 
+pub fn on_sapling_planted(
+    trigger: Trigger<Interacted>,
+    mut inventory: ResMut<Inventory>,
+    q_sapling: Query<(Entity, &Name)>,
+    mut commands: Commands,
+) {
+    inventory.sapling = false;
+    commands.trigger(PlaySfx::Key(SfxKey::Harvest));
+    for (entity, name) in q_sapling.iter() {
+        if name.as_str().contains("FinalSap") {
+            commands.entity(entity).insert(Visibility::Visible);
+        }
+        if name.as_str().contains("TreeUpper") {
+            commands
+                .entity(entity)
+                .insert(Visibility::Visible)
+                .remove::<ColliderDisabled>();
+        }
+    }
+    commands.entity(trigger.entity()).insert(ColliderDisabled);
+}
+
 pub fn on_boat_used(
     trigger: Trigger<Interacted>,
     mut prompt: Query<&mut Text, With<PromptText>>,

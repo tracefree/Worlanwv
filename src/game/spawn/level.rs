@@ -14,11 +14,12 @@ use bevy::{
 use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::{Collider, ComputedColliderShape},
-    prelude::{ActiveCollisionTypes, CollisionGroups, GravityScale, Group},
+    prelude::{ActiveCollisionTypes, ColliderDisabled, CollisionGroups, GravityScale, Group},
 };
 
 use crate::game::logic::{
-    on_boat_used, on_hourglass_taken, on_sapling_taken, BoatPosition, Cycle, Interactable,
+    on_boat_used, on_hourglass_taken, on_sapling_planted, on_sapling_taken, BoatPosition, Cycle,
+    Interactable,
 };
 
 use super::player::SpawnPlayer;
@@ -220,6 +221,8 @@ fn spawn_colliders(
             commands.trigger(SpawnInteractable(InteractableScene::Hourglass, entity));
         } else if name.as_str().contains("SpawnLowerMound") {
             commands.trigger(SpawnInteractable(InteractableScene::MoundLower, entity));
+        } else if name.as_str().contains("SpawnUpperMound") {
+            commands.trigger(SpawnInteractable(InteractableScene::MoundUpper, entity));
         }
 
         if name.as_str().contains("highlight") {
@@ -232,6 +235,15 @@ fn spawn_colliders(
                 }
             }
             continue;
+        }
+        if name.as_str().contains("FinalSap") {
+            commands.entity(entity).insert(Visibility::Hidden);
+        }
+        if name.as_str().contains("TreeUpper") {
+            commands
+                .entity(entity)
+                .insert(Visibility::Hidden)
+                .insert(ColliderDisabled);
         }
         if !name.as_str().contains("_col") {
             continue;
@@ -337,6 +349,20 @@ fn spawn_interactable(
                     .insert(Collider::ball(1.0))
                     .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
                     .observe(on_sapling_taken);
+            });
+        }
+        InteractableScene::MoundUpper => {
+            commands.entity(trigger.event().1).with_children(|parent| {
+                parent
+                    .spawn(SceneBundle {
+                        scene: asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("models/mound_upper.glb")),
+                        ..default()
+                    })
+                    .insert(Interactable::new("E: Plant Sapling".into()))
+                    .insert(Collider::ball(1.0))
+                    .insert(CollisionGroups::new(Group::GROUP_2, Group::ALL))
+                    .observe(on_sapling_planted);
             });
         }
         _ => {
