@@ -19,7 +19,7 @@
 }
 #endif
 
-@group(2) @binding(100) var<uniform> time: f32;
+@group(2) @binding(100) var<uniform> color: vec4<f32>;
 
 fn fresnel(normal: vec3<f32>, view: vec3<f32>, amount: f32) -> f32 {
     return pow(1.0 - clamp(dot(normal, view), 0.0, 0.9), amount);

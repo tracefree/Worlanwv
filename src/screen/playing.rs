@@ -157,11 +157,11 @@ fn handle_menu_action(
         if matches!(interaction, Interaction::Pressed) {
             match action {
                 TitleAction::Play => next_screen.set(PlayState::InGame),
-                TitleAction::Credits => {} //next_screen.set(Screen::Credits),
                 #[cfg(not(target_family = "wasm"))]
                 TitleAction::Exit => {
                     app_exit.send(AppExit::Success);
                 }
+                _ => {}
             }
         }
     }

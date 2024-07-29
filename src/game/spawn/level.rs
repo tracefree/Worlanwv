@@ -65,10 +65,7 @@ pub struct Sun;
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Default)]
 pub struct SkyMaterial {
     #[uniform(0)]
-    pub time: f32,
-    #[cfg(target_family = "wasm")]
-    #[uniform(1)]
-    pub _webgl2_padding: Vec3,
+    pub time: Vec4,
 }
 
 impl Material for SkyMaterial {
@@ -81,10 +78,9 @@ impl Material for SkyMaterial {
     }
 }
 
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, Default)]
 pub struct WaterMaterial {
-    #[uniform(100)]
-    pub time: f32,
+    pub _color: Vec4,
 }
 
 impl MaterialExtension for WaterMaterial {
@@ -111,7 +107,7 @@ fn spawn_level(
                 alpha_mode: AlphaMode::Blend,
                 ..default()
             },
-            extension: WaterMaterial { time: 0.0 },
+            extension: WaterMaterial::default(),
         }),
         mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(10000.0))),
         ..default()
