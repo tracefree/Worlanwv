@@ -250,7 +250,7 @@ fn spawn_colliders(
             }
             continue;
         }
-        if name.as_str().contains("FinalSap") {
+        if name.as_str().contains("FinalSap") || name.as_str().contains("finished_monument") {
             commands.entity(entity).insert(Visibility::Hidden);
         }
         if name.as_str().contains("TreeUpper") {

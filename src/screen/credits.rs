@@ -34,7 +34,7 @@ fn enter_credits(mut commands: Commands, current_cycle: Res<CurrentCycle>) {
         .insert(StateScoped(Screen::Credits))
         .insert(BackgroundColor(NODE_BACKGROUND))
         .with_children(|children| {
-            children.header(format!("Time taken to complete your project: {} years", current_cycle.1 * 12020));
+            children.header(format!("Time taken to complete your project: {} years", current_cycle.1 * 12000));
 
             children.header("Game Design, Programming, 3D Art");
             children.label("Rie");
@@ -46,8 +46,7 @@ fn enter_credits(mut commands: Commands, current_cycle: Res<CurrentCycle>) {
             children.label("TheBevyFlock");
 
             children.header("Free sound assets");
-            children.label("AudioPaplin, kangaroovindaloo, Andreas Mustola, moogy73, OwlishMedia, Valenspire, juskiddink");
-
+            children.label("AudioPaplin, kangaroovindaloo, Andreas Mustola, moogy73, OwlishMedia, Valenspire, juskiddink, dheming");
         });
 
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::CycleOne));

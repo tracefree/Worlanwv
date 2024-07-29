@@ -14,7 +14,7 @@ use crate::{
 
 use super::{
     animation::Animations,
-    assets::{SfxKey, SoundtrackKey},
+    assets::SfxKey,
     audio::{sfx::PlaySfx, soundtrack::PlaySoundtrack},
     movement::MovementController,
     spawn::{
@@ -28,11 +28,12 @@ pub(super) fn plugin(app: &mut App) {
         .insert_resource(DayProgress(0.0))
         .insert_resource(CurrentHighlighted(None))
         .insert_resource(BoatPosition::default())
-        .insert_resource(Inventory {
-            hourglass: true,
-            sapling: false,
-            monument_finished: true,
-        });
+        .insert_resource(Inventory::default());
+    /*  .insert_resource(Inventory {
+    hourglass: true,
+    sapling: false,
+    monument_finished: true,
+    });*/
     app.observe(on_cycle_changed);
     app.observe(cast_ground_ray);
     app.register_type::<Interactable>();
@@ -426,18 +427,14 @@ pub fn on_monument_finished(
 ) {
     inventory.monument_finished = true;
     println!("Monument finished");
-    //commands.trigger(PlaySfx::Key(SfxKey::Harvest));
+    commands.trigger(PlaySfx::Key(SfxKey::Chisel));
     for (entity, name) in q_sapling.iter() {
-        /*    if name.as_str().contains("FinalSap") {
+        if name.as_str().contains("finished_monument") {
             commands.entity(entity).insert(Visibility::Visible);
         }
-        if name.as_str().contains("TreeUpper") {
-            commands
-                .entity(entity)
-                .insert(Visibility::Visible)
-                .remove::<ColliderDisabled>();
+        if name.as_str().contains("Stone") {
+            commands.entity(entity).insert(Visibility::Hidden);
         }
-        */
     }
     commands.entity(trigger.entity()).insert(ColliderDisabled);
 }

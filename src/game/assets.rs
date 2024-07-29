@@ -56,6 +56,7 @@ pub enum SfxKey {
     PickupHourglass,
     Harvest,
     Row,
+    Chisel,
 }
 
 impl AssetKey for SfxKey {
@@ -116,6 +117,7 @@ impl FromWorld for HandleMap<SfxKey> {
             ),
             (SfxKey::Harvest, asset_server.load("audio/sfx/harvest.wav")),
             (SfxKey::Row, asset_server.load("audio/sfx/row.wav")),
+            (SfxKey::Chisel, asset_server.load("audio/sfx/chisel.wav")),
         ]
         .into()
     }
