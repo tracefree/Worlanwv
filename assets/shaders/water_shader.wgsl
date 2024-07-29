@@ -34,15 +34,9 @@ fn edge(depth: f32) -> f32 {
 
 @fragment
 fn fragment(
-#ifdef MULTISAMPLED
-    @builtin(sample_index): u32,
-#endif
     vertex: VertexOutput,
     @builtin(front_facing) is_front: bool,
 ) -> FragmentOutput {
-#ifndef MULTISAMPLED
-    let sample_index = 0u;
-#endif
 
     // Water material
 
@@ -50,6 +44,7 @@ fn fragment(
     var color = color_blue;
 
     #ifndef WEBGL2
+    let sample_index = 0u;
     let depth = bevy_pbr::prepass_utils::prepass_depth(vertex.position, sample_index);
     let foam_factor = smoothstep(0.5, 1.0, abs(position_world_to_view(vertex.world_position.xyz).z - depth_ndc_to_view_z(depth)));
     let color_foam = vec3(1.0);

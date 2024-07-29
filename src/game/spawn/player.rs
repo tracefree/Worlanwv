@@ -3,9 +3,7 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    core_pipeline::{
-        bloom::BloomSettings, experimental::taa::TemporalAntiAliasBundle, prepass::DepthPrepass,
-    },
+    core_pipeline::{bloom::BloomSettings, experimental::taa::TemporalAntiAliasBundle},
     pbr::{ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionSettings},
     prelude::*,
 };
@@ -107,7 +105,6 @@ fn spawn_player(
                             .into(),
                             ..default()
                         })
-                        .insert(DepthPrepass)
                         .insert(ScreenSpaceAmbientOcclusionBundle {
                             settings: ScreenSpaceAmbientOcclusionSettings {
                                 quality_level:

@@ -64,6 +64,8 @@ impl Plugin for AppPlugin {
 
         #[cfg(not(target_arch = "wasm32"))]
         app.add_plugins(TemporalAntiAliasPlugin);
+        #[cfg(target_arch = "wasm32")]
+        app.insert_resource(Msaa::Off);
 
         app.add_plugins((game::plugin, screen::plugin, ui::plugin));
 
