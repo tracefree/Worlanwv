@@ -66,7 +66,7 @@ pub struct Sun;
 pub struct SkyMaterial {
     #[uniform(0)]
     pub time: f32,
-    #[cfg(feature = "webgl2")]
+    #[cfg(target_family = "wasm")]
     #[uniform(1)]
     pub _webgl2_padding: Vec3,
 }
