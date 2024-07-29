@@ -20,7 +20,7 @@ use super::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.insert_resource(CurrentCycle(Cycle::One))
+    app.insert_resource(CurrentCycle(Cycle::One, 0))
         .insert_resource(DayProgress(0.0))
         .insert_resource(CurrentHighlighted(None))
         .insert_resource(BoatPosition::default())
@@ -62,6 +62,7 @@ pub enum Cycle {
     One,
     Two,
     Three,
+    Final,
 }
 
 impl Cycle {
@@ -70,12 +71,13 @@ impl Cycle {
             Cycle::One => Cycle::Two,
             Cycle::Two => Cycle::Three,
             Cycle::Three => Cycle::One,
+            Cycle::Final => Cycle::Final,
         }
     }
 }
 
 #[derive(Resource)]
-pub struct CurrentCycle(pub Cycle);
+pub struct CurrentCycle(pub Cycle, pub usize);
 
 #[derive(Event)]
 pub struct CycleChanged(pub Cycle);
@@ -99,6 +101,7 @@ pub struct Interactable {
 pub struct Inventory {
     hourglass: bool,
     sapling: bool,
+    monument_finished: bool,
 }
 
 #[derive(Component)]
@@ -138,6 +141,10 @@ fn on_cycle_changed(
     mut boat: Query<&mut Transform, With<AnimationPlayer>>,
     mut boat_position: ResMut<BoatPosition>,
 ) {
+    if current_cycle.0 == Cycle::Final {
+        return;
+    }
+
     current_cycle.0 = trigger.event().0;
     prompt.single_mut().sections[0].value = "".into();
 
@@ -147,12 +154,15 @@ fn on_cycle_changed(
                 Cycle::One => 1.0,
                 Cycle::Two => 2.0,
                 Cycle::Three => 3.0,
+                Cycle::Final => 4.0,
             };
             transform.translation.y = -100.0 * depth_modifier;
         } else {
             transform.translation.y = 0.0;
         }
     }
+
+    current_cycle.1 += 1;
     commands.trigger(PlaySfx::Key(SfxKey::CycleChange));
 
     *boat.single_mut() = boat_position.initial_transform;
@@ -185,7 +195,11 @@ fn animate_sun(
     day_progress.0 += time.delta_seconds() * time_modifier / 60.0;
     if day_progress.0 >= 1.0 {
         day_progress.0 -= 1.0;
-        let next_cycle = current_cycle.0.next();
+        let next_cycle = if inventory.monument_finished {
+            Cycle::Final
+        } else {
+            current_cycle.0.next()
+        };
         commands.trigger(CycleChanged(next_cycle));
     }
 
@@ -395,8 +409,10 @@ pub fn on_sapling_planted(
 pub fn on_monument_finished(
     trigger: Trigger<Interacted>,
     q_sapling: Query<(Entity, &Name)>,
+    mut inventory: ResMut<Inventory>,
     mut commands: Commands,
 ) {
+    inventory.monument_finished = true;
     println!("Monument finished");
     //commands.trigger(PlaySfx::Key(SfxKey::Harvest));
     for (entity, name) in q_sapling.iter() {

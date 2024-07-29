@@ -149,6 +149,15 @@ fn spawn_level(
         })
         .insert(Cycle::Three);
 
+    // Cycle Finale
+    commands
+        .spawn(SceneBundle {
+            scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cycle_4.glb")),
+            transform: Transform::from_xyz(0.0, -400.0, 0.0),
+            ..default()
+        })
+        .insert(Cycle::Final);
+
     // Comet
     commands.spawn(SceneBundle {
         scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/comet.glb")),
