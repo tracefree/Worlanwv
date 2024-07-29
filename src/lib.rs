@@ -59,7 +59,7 @@ impl Plugin for AppPlugin {
         // Add other plugins.
         app.add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
 
-        #[cfg(not(all(feature = "webgl2", target_arch = "wasm32")))]
+        #[cfg(not(target_arch = "wasm32"))]
         app.add_plugins(TemporalAntiAliasPlugin);
 
         app.add_plugins((game::plugin, screen::plugin, ui::plugin));

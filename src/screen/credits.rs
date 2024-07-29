@@ -1,7 +1,5 @@
 //! A credits screen that can be accessed from the title screen.
 
-use std::fmt::format;
-
 use bevy::prelude::*;
 use ui_palette::NODE_BACKGROUND;
 
