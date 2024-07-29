@@ -1,5 +1,7 @@
 //! Spawn the player.
 
+use std::f32::consts::PI;
+
 use bevy::{
     core_pipeline::{
         bloom::BloomSettings, experimental::taa::TemporalAntiAliasBundle, prepass::DepthPrepass,
@@ -48,7 +50,10 @@ fn spawn_player(
             MovementController::default(),
             StateScoped(Screen::Playing),
             SpatialBundle {
-                transform: Transform::from_xyz(0.0, 5.0, 0.0),
+                transform: Transform {
+                    translation: Vec3::new(5.52, 4.4, -33.66),
+                    ..default()
+                },
                 ..default()
             },
             RigidBody::KinematicPositionBased,
@@ -77,7 +82,11 @@ fn spawn_player(
             player
                 .spawn(CameraPivot)
                 .insert(SpatialBundle {
-                    transform: Transform::from_xyz(0.0, 0.8, 0.0),
+                    transform: Transform {
+                        translation: Vec3::new(0.0, 0.8, 0.0),
+                        rotation: Quat::from_euler(EulerRot::YXZ, PI - 0.2, 0.2, 0.0),
+                        ..default()
+                    },
                     ..default()
                 })
                 .with_children(|pivot| {
@@ -89,7 +98,7 @@ fn spawn_player(
                                 hdr: true,
                                 ..default()
                             },
-                            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+                            transform: Transform::default(), //from_rotation(Quat::from_rotation_x(0.2)),
                             projection: PerspectiveProjection {
                                 fov: 70.0_f32.to_radians(),
                                 near: 0.1,
