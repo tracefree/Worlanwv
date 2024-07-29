@@ -39,7 +39,10 @@ impl Plugin for AppPlugin {
                 .set(WindowPlugin {
                     primary_window: Window {
                         title: "Worlanwv".to_string(),
-                        resolution: WindowResolution::new(1280.0, 720.0),
+                        #[cfg(not(target_family = "wasm"))]
+                        resolution: WindowResolution::new(1920.0, 1080.0),
+                        #[cfg(target_family = "wasm")]
+                        resolution: WindowResolution::new(1024.0, 576.0),
                         canvas: Some("#bevy".to_string()),
                         fit_canvas_to_parent: true,
                         prevent_default_event_handling: true,
