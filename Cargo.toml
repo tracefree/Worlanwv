@@ -6,7 +6,6 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.14", features = ["wav", "wayland"] }
-bevy-inspector-egui = "0.25.1"
 bevy_rapier3d = "0.27.0"
 # Disable low-severity logs at compile time for performance.
 log = { version = "0.4", features = [
