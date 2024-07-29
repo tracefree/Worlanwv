@@ -177,14 +177,14 @@ fn spawn_level(
                     ..default()
                 })
                 .insert(MaterialMeshBundle {
-                    mesh: meshes.add(Sphere::new(50.0)),
+                    mesh: meshes.add(Sphere::new(500.0)),
                     material: materials.add(StandardMaterial {
                         base_color: Color::from(tailwind::YELLOW_950),
                         emissive: LinearRgba::new(100.0, 80.0, 10.0, 1.0),
                         ..default()
                     }),
                     transform: Transform {
-                        translation: Vec3::new(1000.0, 0.0, 0.0),
+                        translation: Vec3::new(10000.0, 0.0, 0.0),
                         rotation: Quat::from_rotation_y(PI / 2.0),
                         ..default()
                     },
