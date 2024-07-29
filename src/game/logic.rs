@@ -486,7 +486,7 @@ fn respawn(
 ) {
     let mut transform = transform.single_mut();
     if transform.translation.y <= 0.0 {
-        transform.translation = Vec3::new(10.0, 5.0, 10.0);
+        transform.translation = Vec3::new(5.52, 4.4, -33.66);
         commands.trigger(CycleChanged(current_cycle.0.next()));
     }
 }

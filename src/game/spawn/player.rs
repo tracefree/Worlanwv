@@ -98,7 +98,7 @@ fn spawn_player(
                                 hdr: true,
                                 ..default()
                             },
-                            transform: Transform::default(), //from_rotation(Quat::from_rotation_x(0.2)),
+                            transform: Transform::default(),
                             projection: PerspectiveProjection {
                                 fov: 70.0_f32.to_radians(),
                                 near: 0.1,
