@@ -1,113 +1,58 @@
-_Brought to you by the Bevy Jam working group._
+# Worlanwv
 
-# Bevy Quickstart
+![worlawv_cover2](https://github.com/user-attachments/assets/8ba5ad0a-757d-4a71-9842-93b48070c3fd)
 
-This template is a great way to get started on a new [Bevy](https://bevyengine.org/) game—especially for a game jam!
-Start with a [basic project structure](#write-your-game) and [CI / CD](#release-your-game) that can deploy to [itch.io](https://itch.io).
-You can [try this template in your web browser!](https://the-bevy-flock.itch.io/bevy-quickstart)
+Whenever Worlanwv returns it spells disaster for the world. Can you finish your art project in time so that at least those who come after you will be able to prepare?
 
-Don't want to read through the whole README? [@ChristopherBiscardi](https://github.com/ChristopherBiscardi) made a video on how to use the template from start to finish:
+This very short game is a walking simulator with light puzzle elements. My personal best time was 156,000 years and I invite you to beat my score!
 
-[<img src="./docs/thumbnail.png" width=40% height=40% alt="A video tutorial for bevy_quickstart"/>](https://www.youtube.com/watch?v=ESBRyXClaYc)
+It was written in Rust with the game engine [Bevy](https://bevyengine.org/) and was submitted to the fifth official [Bevy game jam](https://itch.io/jam/bevy-jam-5). It is available in binary form for Linux, Mac, and Windows, and can be played in the browser on [itch.io](https://tracefree.itch.io/worlanwv). The browser version has a few technical limitations and does not look as good as the desktop version, so I recommend downloading the game.
 
-## Prerequisites
+## Controls
+- W/A/S/D: Move
+- Mouse: Look
+- Space: Jump
+- E: Interact
+- Hold Q: Fast forward time after picking up the hourglass
+- Escape: Pause
 
-We assume that you know how to use Bevy already and have seen the [official Quick Start Guide](https://bevyengine.org/learn/quick-start/introduction/).
+## If you get stuck
+Unfortunately the game has some technical as well as design problems (mostly specific to the web build). Here are some workarounds if you run into a problem:
+- Click the full-screen icon when playing the web build!
+- If you can't see or click on the "Play" button at the beginning, press Enter.
+- If you have troubles in Firefox and really don't want to use the desktop version (it's much better!), try Chrome.
+- If you suddenly get stuck in geometry that spawned out of nowhere, I'm really sorry. It should go away after waiting 60 seconds, or if you have the hourglass hold Q to fast forward until you're free. If that - doesn't help I'm afraid you'll have to restart (it's a very short game though).
+- There are some graphical glitches and sometimes it's hard to make out things. Please try the desktop version, it's better there!
+- The Credits button in the menu doesn't actually do anything. Sorry about that, you'll have to finish the game to see it :P (Or just continue reading this page)
 
-## Create a new game
-
-Install [`cargo-generate`](https://github.com/cargo-generate/cargo-generate) and run the following commands:
-
-```sh
-cargo generate TheBevyFlock/bevy_quickstart --branch cargo-generate
-git branch --move main
+## Build
+If you prefer to build the game from source, make sure you have git and cargo installed and then run the following commands:
+```
+git clone https://github.com/tracefree/Worlanwv.git
+cd Worlanwv
+cargo run
 ```
 
-Then [create a GitHub repository](https://github.com/new) and push your local repository to it.
-
-<details>
-  <summary>This template can also be set up manually.</summary>
-
-Navigate to the top of [this GitHub repository](https://github.com/TheBevyFlock/bevy_quickstart/) and select `Use this template > Create a new repository`:
-
-![UI demonstration](./docs/readme-manual-setup.png)
-
-Clone your new Github repository to a local repository and push a commit with the following changes:
-
-- Delete `LICENSE`, `README`, and `docs/` files.
-- Search for and replace instances of `bevy_quickstart` with the name of your project.
-- Adjust the `env` variables in [`.github/workflows/release.yaml`](./.github/workflows/release.yaml).
-
-</details>
-
-## Write your game
-
-The best way to get started is to play around with what you find in [`src/game/`](./src/game).
-
-This template comes with a basic project structure that you may find useful:
-
-| Path                                     | Description                                           |
-|------------------------------------------|-------------------------------------------------------|
-| [`src/lib.rs`](./src/lib.rs)             | App setup                                             |
-| [`src/screen/`](./src/screen)            | Splash screen, title screen, playing screen, etc.     |
-| [`src/game/`](./src/game)                | Game mechanics & content (replace with your own code) |
-| [`src/ui/`](./src/ui)                    | Reusable UI widgets & theming                         |
-| [`src/dev_tools.rs`](./src/dev_tools.rs) | Dev tools for dev builds                              |
-
-Feel free to move things around however you want, though.
-
-If you are new to Bevy, the patterns used in this template may look a bit weird at first glance.
-See our [Design Document](./docs/design.md) for more information on how we structured the code and why.
-
-> [!Tip]
-> Be sure to check out the [3rd-party tools](./docs/tooling.md) we recommend!
-
-## Run your game
-
-Running your game locally is very simple:
-
-- Use `cargo run` to run a native dev build.
-- Use [`trunk serve`](https://trunkrs.dev/) to run a web dev build.
-
-If you're using [VS Code](https://code.visualstudio.com/), this template comes with a [`.vscode/tasks.json`](./.vscode/tasks.json) file.
-
-<details>
-  <summary>Run release builds</summary>
-
-- Use `cargo run --profile release-native --no-default-features` to run a native release build.
-- Use `trunk serve --release --no-default-features` to run a web release build.
-
-</details>
-
-<details>
-    <summary>(Optional) Improve your compile times</summary>
-
-[`.cargo/config_fast_builds.toml`](./.cargo/config_fast_builds.toml) contains documentation on how to set up your environment to improve compile times.
-After you've fiddled with it, rename it to `.cargo/config.toml` to enable it.
-
-</details>
-
-## Release your game
-
-This template uses [GitHub workflows](https://docs.github.com/en/actions/using-workflows) to run tests and build releases.
-See [Workflows](./docs/workflows.md) for more information.
-
-## Known Issues
-
-There are some known issues in Bevy that require some arcane workarounds.
-To keep this template simple, we have opted not to include those workarounds.
-You can read about them in the [Known Issues](./docs/known-issues.md) document.
-
-## License
-
-The source code in this repository is licensed under any of the following at your option:
-
-- [CC0-1.0 License](./LICENSE-CC0-1.0.txt)
-- [MIT License](./LICENSE-MIT.txt)
-- [Apache License, Version 2.0](./LICENSE-Apache-2.0.txt)
-
-We hold no patent rights to anything presented in this repository.
-
 ## Credits
+### Code
+- The [Bevy quickstart template](https://github.com/TheBevyFlock/bevy_new_2d) was used as a starting point for the project structure.
+- The rest of the code including gameplay and shaders was written by me, tracefree a.k.a. Rie. It it available under you choice of either [MIT](LICENSE-MIT) or [Apache 2.0](LICENSE-APACHE).
 
-The [assets](./assets) in this repository are all 3rd-party. See the [credits screen](./src/screen/credits.rs) for more information.
+### Original composition
+- Music by Ira Provectus and Michael Feigl, all rights reserved
+
+### 3D Assets
+- tracefree a.k.a. Rie, CC0
+
+### Free sound effects
+- "Impact sfx 031" by [AudioPaplin](https://freesound.org/people/AudioPapkin/sounds/648454/), CC Attribution NonCommercial 4.0
+- "Roaring Ocean" by [kangaroovindaloo](https://freesound.org/people/kangaroovindaloo/sounds/246515/), CC Attribution 4.0
+- "Mouse Hover" by [Andreas Mustola](https://freesound.org/people/Andreas.Mustola/sounds/255764/), CC0
+- "Click03" by [moogy73](https://freesound.org/people/moogy73/sounds/425726/), CC0
+- "Sound Effects Pack" by [OwlishMedia](https://opengameart.org/content/sound-effects-pack), CC0
+- "Plant_Harvest_03" by [Valenspire](https://freesound.org/people/Valenspire/sounds/699492/), CC0
+- "Rowing2.wav" by [juskiddink](https://freesound.org/people/juskiddink/sounds/101921/), CC Attribution 4.0
+- "Rock_Hammer_Chisel_01.wav" by [dheming](https://freesound.org/people/dheming/sounds/240981/), CC Attribution 4.0
+
+![worl_s2](https://github.com/user-attachments/assets/74df542d-7235-4fff-9c6f-533973b31ae4)
+  
