@@ -36,7 +36,7 @@ cargo run
 ## Credits
 ### Code
 - The [Bevy quickstart template](https://github.com/TheBevyFlock/bevy_new_2d) was used as a starting point for the project structure.
-- The rest of the code including gameplay and shaders was written by me, tracefree a.k.a. Rie. It it available under you choice of either [MIT](LICENSE-MIT) or [Apache 2.0](LICENSE-APACHE).
+- The rest of the code including gameplay and shaders was written by me, tracefree a.k.a. Rie. It is available under you choice of either [MIT](LICENSE-MIT) or [Apache 2.0](LICENSE-APACHE).
 
 ### Original composition
 - Music by Ira Provectus and Michael Feigl, all rights reserved
